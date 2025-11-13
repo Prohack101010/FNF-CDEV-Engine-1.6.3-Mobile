@@ -16,7 +16,7 @@ import sys.FileSystem;
 import meta.modding.week_editor.WeekData;
 import game.objects.Character;
 import flixel.tweens.FlxEase;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -111,7 +111,7 @@ class StoryMenuState extends MusicBeatState
 
 		trace("Line 70");
 
-		#if desktop
+		#if DISCORD_RPC
 		// Updating Discord Rich Presence
 		if (Main.discordRPC)
 			DiscordClient.changePresence("In the Story menu", null);
@@ -123,6 +123,7 @@ class StoryMenuState extends MusicBeatState
 			var weekThing:MenuItem = new MenuItem(0, yellowBG.y + yellowBG.height + 10, 0, weekJSONs[i][0].weekTxtImgPath);
 			weekThing.y += ((weekThing.height + 20) * i);
 			weekThing.targetY = i;
+			weekThing.ID = i;
 			grpWeekText.add(weekThing);
 
 			weekThing.screenCenter(X);
@@ -321,6 +322,51 @@ class StoryMenuState extends MusicBeatState
 					changeDifficulty(1);
 				if (controls.UI_LEFT_P)
 					changeDifficulty(-1);
+
+				if (FlxG.mouse.overlaps(leftArrow))
+				{
+					if (FlxG.mouse.pressed)
+						leftArrow.animation.play('press');
+					else
+						leftArrow.animation.play('idle');
+
+					if (FlxG.mouse.justPressed)
+						changeDifficulty(-1);
+				}
+
+				if (FlxG.mouse.overlaps(rightArrow))
+				{
+					if (FlxG.mouse.pressed)
+						rightArrow.animation.play('press');
+					else
+						rightArrow.animation.play('idle');
+
+					if (FlxG.mouse.justPressed)
+						changeDifficulty(1);
+				}
+
+				for (item in grpWeekText.members)
+				{
+					if (FlxG.mouse.overlaps(item))
+					{
+						if (FlxG.mouse.justPressed)
+						{
+							if (curWeek != item.ID)
+							{
+								changeWeek(item.ID, true);
+								changeDifficulty();
+							}
+							else
+							{
+								if (stopspamming == false)
+								{
+									StoryMenuFunctions.checkSongs();
+									stopspamming = true;
+								}
+							}
+						}
+					}
+				}
 			}
 
 			if (controls.ACCEPT)
@@ -412,10 +458,13 @@ class StoryMenuState extends MusicBeatState
 	var lerpScore:Int = 0;
 	var intendedScore:Int = 0;
 
-	function changeWeek(change:Int = 0):Void
+	function changeWeek(change:Int = 0, forceChange:Bool = false):Void
 	{
 		prevCharacters = weekJSONs[curWeek][0].weekCharacters;
-		curWeek += change;
+		if (forceChange)
+			curWeek = change;
+		else
+			curWeek += change;
 
 		if (curWeek >= weekJSONs.length)
 			curWeek = 0;

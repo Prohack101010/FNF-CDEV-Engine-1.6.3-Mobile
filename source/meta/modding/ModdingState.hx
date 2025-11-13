@@ -2,7 +2,9 @@ package meta.modding;
 
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+#if HxWebView
 import meta.substates.WebviewSubstate;
+#end
 import openfl.Lib;
 import game.Controls.Control;
 import flash.text.TextField;
@@ -15,7 +17,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 
@@ -33,7 +35,7 @@ class ModdingState extends meta.states.MusicBeatState
 		FlxG.sound.muteKeys = [ZERO, NUMPADZERO];
 		FlxG.sound.volumeDownKeys = [MINUS,NUMPADMINUS];
 		FlxG.sound.volumeUpKeys = [PLUS,NUMPADPLUS];
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("About to create a cool mod.", null);
 		#end
@@ -57,6 +59,7 @@ class ModdingState extends meta.states.MusicBeatState
 			optionText.isMenuItem = true;
 			optionText.isFreeplay = true;
 			optionText.targetY = i;
+			optionText.ID = i;
 			// optionText.y += (100 * (i - (options.length / 2))) + 50;
 			grpOptions.add(optionText);
 		}
@@ -97,6 +100,37 @@ class ModdingState extends meta.states.MusicBeatState
 			changeSelection(1);
 		}
 
+		for (item in grpOptions.members)
+		{
+			if (FlxG.mouse.overlaps(item))
+			{
+				if (FlxG.mouse.justPressed)
+				{
+					if (curSelected != item.ID)
+						changeSelection(item.ID, true);
+					else
+					{
+						for (item in grpOptions.members)
+						{
+							item.alpha = 0;
+						}
+
+						switch (options[curSelected])
+						{
+							case 'Create a new mod':
+								FlxG.switchState(new NewModState());
+							case 'Open an existing mod':
+								FlxG.switchState(new OpenExistingModState());
+							case 'Install a mod':
+								FlxG.switchState(new InstallModState());
+							case "Read the Docs":
+								#if HxWebView openSubState(new WebviewSubstate("https://core5570ryt.github.io/FNF-CDEV-Engine/")); #end
+						}
+					}
+				}
+			}
+		}
+
 		if (controls.BACK)
 		{
 			FlxG.save.flush();
@@ -123,17 +157,20 @@ class ModdingState extends meta.states.MusicBeatState
 					//FlxG.switchState(new ());
 					//FlxG.switchState(new CreateCharacterBETATEST());
 				case "Read the Docs":
-					openSubState(new WebviewSubstate("https://core5570ryt.github.io/FNF-CDEV-Engine/"));
+					#if HxWebView openSubState(new WebviewSubstate("https://core5570ryt.github.io/FNF-CDEV-Engine/")); #end
 			}
 		}
 	}
 
-	function changeSelection(change:Int = 0)
+	function changeSelection(change:Int = 0, forceChange:Bool = false)
 	{
 		var bullShit:Int = 0;
 
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-		curSelected += change;
+		if (forceChange)
+			curSelected = change;
+		else
+			curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = options.length - 1;

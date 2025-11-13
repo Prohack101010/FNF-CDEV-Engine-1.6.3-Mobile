@@ -4,7 +4,7 @@ import sys.io.File;
 import lime.system.Clipboard;
 import flixel.addons.ui.FlxUIInputText;
 import game.objects.Alphabet;
-#if desktop import game.cdev.engineutils.Discord.DiscordClient; #end
+#if DISCORD_RPC import game.cdev.engineutils.Discord.DiscordClient; #end
 import game.cdev.CDevConfig;
 import flixel.math.FlxMath;
 import flixel.group.FlxGroup.FlxTypedGroup;
@@ -41,7 +41,7 @@ class EventScriptEditor extends MusicBeatState
 	{
 		super.create();
 		FlxG.mouse.visible = true;
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Creating Event Scripts", null);
 		#end

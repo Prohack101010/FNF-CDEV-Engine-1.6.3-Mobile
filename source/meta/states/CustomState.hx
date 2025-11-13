@@ -196,6 +196,36 @@ class CustomState extends MusicBeatState
 		script.setVariable("OptionsState", OptionsState);
 		script.setVariable("ModdingState", ModdingState);
 		script.setVariable("AboutState", AboutState);
+
+		//instance access
+		script.setVariable("state", FlxG.state);
+
+		//mobile stuff
+		script.setVariable("addBackButton", function(?xPos:Float = 0, ?yPos:Float = 0, ?color:FlxColor = FlxColor.WHITE, ?confirmCallback:Void->Void = null,
+			?restOpacity:Float = 0.3, ?instant:Bool = false)
+		{
+			addBackButton(xPos, yPos, color, confirmCallback, restOpacity, instant);
+		});
+		script.setVariable("addMobilePad", function(DPad:String, Action:String)
+		{
+			addMobilePad(DPad, Action);
+		});
+		script.setVariable("removeMobilePad", function()
+		{
+			removeMobilePad();
+		});
+		script.setVariable("addMobileControls", function(?mode:String, defaultDrawTarget:Bool = false)
+		{
+			addMobileControls(mode, defaultDrawTarget);
+		});
+		script.setVariable("removeMobileControls", function()
+		{
+			removeMobileControls();
+		});
+		script.setVariable("addMobilePadCamera", function(defaultDrawTarget:Bool = false)
+		{
+			addMobilePadCamera(defaultDrawTarget);
+		});
 		lastMod = Paths.currentMod;
 	}
 

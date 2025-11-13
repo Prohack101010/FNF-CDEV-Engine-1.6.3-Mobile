@@ -27,7 +27,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import game.cdev.CDevMods.ModFile;
@@ -59,7 +59,7 @@ class NewModState extends meta.states.MusicBeatState
 		FlxG.sound.volumeUpKeys = [PLUS, NUMPADPLUS];
 
 		FlxG.mouse.visible = true;
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("About to create a cool mod.", null);
 		#end
@@ -253,7 +253,8 @@ class NewModState extends meta.states.MusicBeatState
 				var winTitleTrimmed:String = label_windowTitle.text.trim();
 
 				var blocked:Bool = CDevConfig.utils.containsBlockedSymbol(modNameTrimmed) || CDevConfig.utils.isBlockedWord(modNameTrimmed);
-				var modExists:Bool = FileSystem.exists(Paths.modsPath + "/" + modNameTrimmed) && FileSystem.isDirectory(Paths.modsPath + "/" + modNameTrimmed);
+				var modExists:Bool = FileSystem.exists(#if mobile StorageUtil.getExternalStorageDirectory() + #end Paths.modsPath + "/" + modNameTrimmed) && 
+						FileSystem.isDirectory(#if mobile StorageUtil.getExternalStorageDirectory() + #end Paths.modsPath + "/" + modNameTrimmed);
 				var others:Bool = modNameTrimmed == "" || modNameTrimmed.startsWith(".");
 				if (others || blocked) {
 					txtMn.color = FlxColor.RED;
@@ -327,7 +328,7 @@ class NewModState extends meta.states.MusicBeatState
 
 		if (data.length > 0)
 		{
-			File.saveContent('cdev-mods/' + modFile.modName + '/mod.json', data);
+			File.saveContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + modFile.modName + '/mod.json', data);
 		}
 	}
 }

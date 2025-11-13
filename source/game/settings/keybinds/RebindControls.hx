@@ -228,7 +228,7 @@ class RebindControls extends meta.substates.MusicBeatSubstate
 							i.playAnim("confirm", true);
 						}
 					}
-					if (FlxG.keys.justPressed.ESCAPE)
+					if (FlxG.keys.justPressed.ESCAPE #if android || FlxG.android.justReleased.BACK #end)
 					{
 						if (camTween != null)
 							camTween.cancel();
@@ -350,7 +350,7 @@ class RebindControls extends meta.substates.MusicBeatSubstate
 						}
 					});
 
-					if (FlxG.keys.justPressed.ESCAPE)
+					if (FlxG.keys.justPressed.ESCAPE #if android || FlxG.android.justReleased.BACK #end)
 					{
 						if (camTween != null)
 							camTween.cancel();

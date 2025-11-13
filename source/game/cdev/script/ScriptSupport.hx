@@ -232,6 +232,33 @@ class ScriptSupport
 
 			return;
 		});
+
+		//mobile stuff
+		script.setVariable("addBackButton", function(?xPos:Float = 0, ?yPos:Float = 0, ?color:FlxColor = FlxColor.WHITE, ?confirmCallback:Void->Void = null,
+			?restOpacity:Float = 0.3, ?instant:Bool = false)
+		{
+			playStated.addBackButton(xPos, yPos, color, confirmCallback, restOpacity, instant);
+		});
+		script.setVariable("addMobilePad", function(DPad:String, Action:String)
+		{
+			playStated.addMobilePad(DPad, Action);
+		});
+		script.setVariable("removeMobilePad", function()
+		{
+			playStated.removeMobilePad();
+		});
+		script.setVariable("addMobileControls", function(?mode:String, defaultDrawTarget:Bool = false)
+		{
+			playStated.addMobileControls(mode, defaultDrawTarget);
+		});
+		script.setVariable("removeMobileControls", function()
+		{
+			playStated.removeMobileControls();
+		});
+		script.setVariable("addMobilePadCamera", function(defaultDrawTarget:Bool = false)
+		{
+			playStated.addMobilePadCamera(defaultDrawTarget);
+		});
 		script.mod = mod;
 		//trace('init script finished');
 	}

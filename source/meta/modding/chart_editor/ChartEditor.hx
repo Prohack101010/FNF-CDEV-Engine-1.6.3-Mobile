@@ -1,6 +1,6 @@
 package meta.modding.chart_editor;
 
-import game.cdev.engineutils.Discord.DiscordClient;
+#if DISCORD_RPC import game.cdev.engineutils.Discord.DiscordClient; #end
 import meta.modding.char_editor.CharacterData.CharData;
 import flixel.math.FlxMath;
 import game.cdev.CDevPopUp;
@@ -142,7 +142,7 @@ class ChartEditor extends MusicBeatState {
 
     override function create(){
         Paths.destroyLoadedImages(false);
-		DiscordClient.changePresence("Chart Editor", null, null, true);
+		#if DISCORD_RPC DiscordClient.changePresence("Chart Editor", null, null, true); #end
 
 		FlxG.mouse.visible = true;
 		FlxG.mouse.useSystemCursor = true;

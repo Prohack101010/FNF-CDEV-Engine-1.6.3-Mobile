@@ -15,7 +15,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 
@@ -33,7 +33,7 @@ class OptionsSubState extends MusicBeatSubstate
 	{
 		super();
 		SettingsProperties.ON_PAUSE = true;
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Setting the game options", null);
 		#end

@@ -10,7 +10,7 @@ import flixel.math.FlxMath;
 import flixel.input.keyboard.FlxKey;
 import lime.system.System;
 import flixel.util.FlxTimer;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import openfl.Lib;
@@ -74,7 +74,7 @@ class MainMenuState extends MusicBeatState
 		FlxG.sound.volumeDownKeys = [MINUS,NUMPADMINUS];
 		FlxG.sound.volumeUpKeys = [PLUS,NUMPADPLUS];
 
-		#if desktop
+		#if DISCORD_RPC
 		// Updating Discord Rich Presence
 		if (Main.discordRPC)
 			DiscordClient.changePresence("In the Menus", null);
@@ -322,7 +322,7 @@ class MainMenuState extends MusicBeatState
 	function confirmShit(){
 		switch(optionShit[curSelected]){
 			case 'donate':
-				CDevConfig.utils.openURL('https://ninja-muffin24.itch.io/funkin');
+				CDevConfig.utils.openURL('https://buymeacoffee.com/kraloyuncurbx'); //why not :)
 			default:
 				selectedSomethin = true;
 				FlxG.sound.play(Paths.sound('confirmMenu'));

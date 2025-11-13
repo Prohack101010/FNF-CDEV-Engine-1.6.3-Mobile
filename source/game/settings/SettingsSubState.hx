@@ -34,6 +34,7 @@ class SettingsSubState extends MusicBeatSubstate
 	{
 		super();
 		if (!loaded)
+		//temp
 		{
 			this.fromPause = fromPause;
 			SettingsProperties.setCurrentClass(this);
@@ -89,6 +90,9 @@ class SettingsSubState extends MusicBeatSubstate
 				}
 			});
 
+			addMobilePad('OPTIONS', 'OPTIONS');
+			addMobilePadCamera();
+
 			if (fromPause)
 				cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 			loaded = true;
@@ -109,6 +113,7 @@ class SettingsSubState extends MusicBeatSubstate
 	}
 
 	var holdTime:Float = 0;
+	var pressedWithMouse:Bool = false;
 
 	override function update(elapsed:Float)
 	{
@@ -122,6 +127,21 @@ class SettingsSubState extends MusicBeatSubstate
 			{
 				changeSelection(1);
 			}
+
+			for (item in grpOptions.members)
+			{
+				if (FlxG.mouse.overlaps(item))
+				{
+					if (FlxG.mouse.justPressed)
+					{
+						if (curSelected != item.ID)
+							changeSelection(item.ID, true);
+						else
+							pressedWithMouse = true;
+					}
+				}
+			}
+
 			if (controls.BACK)
 			{
 				close();
@@ -153,35 +173,37 @@ class SettingsSubState extends MusicBeatSubstate
 		switch (curSet.type)
 		{
 			case 0: // bool
-				if (controls.ACCEPT)
+				if (controls.ACCEPT || pressedWithMouse)
 				{
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					CDevConfig.setData(curSet.savedata_field, !CDevConfig.getData(curSet.savedata_field));
 					updateText(theText.ID);
 				}
 			case 1: // int
-				var daValueToAdd:Int = FlxG.keys.pressed.RIGHT ? 1 : -1;
-				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT)
+				var daValueToAdd:Int = (FlxG.keys.pressed.RIGHT || mobilePad.buttonRight.pressed) ? 1 : -1;
+				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT || mobilePad.buttonLeft.pressed || mobilePad.buttonRight.pressed)
 					holdTime += elapsed;
 
 				if (holdTime <= 0)
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 
-				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT)
+				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || 
+					mobilePad.buttonLeft.justPressed || mobilePad.buttonRight.justPressed)
 				{
 					CDevConfig.setData(curSet.savedata_field, CDevConfig.getData(curSet.savedata_field) + daValueToAdd);
 					updateText(theText.ID);
 				}
 				curSet.value_name[0] = CDevConfig.getData(curSet.savedata_field);
 			case 2: // float
-				var daValueToAdd:Float = FlxG.keys.pressed.RIGHT ? 0.1 : -0.1;
-				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT)
+				var daValueToAdd:Float = (FlxG.keys.pressed.RIGHT || mobilePad.buttonRight.pressed) ? 0.1 : -0.1;
+				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT || mobilePad.buttonLeft.pressed || mobilePad.buttonRight.pressed)
 					holdTime += elapsed;
 
 				if (holdTime <= 0)
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 
-				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT)
+				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || 
+					mobilePad.buttonLeft.justPressed || mobilePad.buttonRight.justPressed)
 				{
 					CDevConfig.setData(curSet.savedata_field, CDevConfig.getData(curSet.savedata_field) + daValueToAdd);
 					updateText(theText.ID);
@@ -193,6 +215,7 @@ class SettingsSubState extends MusicBeatSubstate
 			case 4: // self defined
 				updateText(theText.ID);
 		}
+		pressedWithMouse = false;
 	}
 
 	function updateText(set:Int)
@@ -227,10 +250,14 @@ class SettingsSubState extends MusicBeatSubstate
 		title.alpha = 0;
 	}
 
-	public function changeSelection(change:Int = 0)
+	public function changeSelection(change:Int = 0, forceChange:Bool = false)
 	{
 		FlxG.sound.play(game.Paths.sound('scrollMenu'), 0.5);
-		curSelected += change;
+		if (forceChange)
+			curSelected = change;
+		else
+			curSelected += change;
+
 		var bullShit:Int = 0;
 		if (curSelected < 0)
 			curSelected = theCat.settings.length - 1;
@@ -256,6 +283,18 @@ class SettingsSubState extends MusicBeatSubstate
 			{
 				item.alpha = 1;
 			}
+		}
+
+		var curSet:BaseSettings = theCat.settings[curSelected];
+		switch (curSet.type)
+		{
+			case 0: // bool
+				if (mobilePad != null) {
+					mobilePad.clickable = false;
+					FlxTween.tween(mobilePad, {alpha: 0}, 0.5);
+				}
+			default: // others
+				if (mobilePad != null) FlxTween.tween(mobilePad, {alpha: CDevConfig.saveData.mobilePadAlpha}, 0.5, { onComplete: function(tween:FlxTween) { mobilePad.clickable = true; }});
 		}
 	}
 }

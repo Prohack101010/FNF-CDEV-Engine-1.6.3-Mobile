@@ -1291,7 +1291,7 @@ class Better_StageEditor extends MusicBeatState
 	function save()
 	{
 		updateJson();
-		var path = 'cdev-mods/${Paths.curModDir[0]}/data/stages/${stageToLoad}';
+		var path = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/${Paths.curModDir[0]}/data/stages/${stageToLoad}';
 
 		if (FileSystem.exists(path + ".json"))
 		{
@@ -1515,7 +1515,7 @@ class StageSaveDialog extends MusicBeatSubstate
 		{
 			if (data.length > 0)
 			{
-				File.saveContent('cdev-mods/' + Paths.curModDir[0] + '/data/stages/' + input_stageBName.text + '.json', data);
+				File.saveContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[0] + '/data/stages/' + input_stageBName.text + '.json', data);
 				FlxG.sound.play(game.Paths.sound('confirmMenu'));
 				close();
 				sa.stageDropDown.selectedLabel = input_stageBName.text;

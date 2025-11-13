@@ -141,7 +141,7 @@ class Paths
 		return '$library:assets/$library/$file';
 	}
 
-	inline static public function getPreloadPath(file:String)
+	inline static public function getPreloadPath(file:String = '')
 	{
 		return 'assets/$file';
 	}
@@ -223,26 +223,32 @@ class Paths
 
 	inline static public function voices(song:String):Any
 	{
-		#if sys
 		var file:Sound = returnSongFile(modSongs(song.toLowerCase().replace(' ', '-') + '/Voices'));
 		if (file != null)
-		{
 			return file;
-		}
-		#end
-		return 'songs:assets/songs/${song.toLowerCase().replace(' ', '-')}/Voices.$SOUND_EXT';
+
+		var path:String = #if mobile StorageUtil.getStorageDirectory() #else './' #end + 'assets/songs/${song.toLowerCase().replace(' ', '-')}/Voices.$SOUND_EXT';
+		if (FileSystem.exists(path))
+			file = Sound.fromFile(path);
+		if (file != null)
+			return file;
+
+		return null;
 	}
 
 	inline static public function inst(song:String):Any
 	{
-		#if sys
 		var file:Sound = returnSongFile(modSongs(song.toLowerCase().replace(' ', '-') + '/Inst'));
 		if (file != null)
-		{
 			return file;
-		}
-		#end
-		return 'songs:assets/songs/${song.toLowerCase().replace(' ', '-')}/Inst.$SOUND_EXT';
+
+		var path:String = #if mobile StorageUtil.getStorageDirectory() #else './' #end + 'assets/songs/${song.toLowerCase().replace(' ', '-')}/Inst.$SOUND_EXT';
+		if (FileSystem.exists(path))
+			file = Sound.fromFile(path);
+		if (file != null)
+			return file;
+
+		return null;
 	}
 
 	// hi :) credit: Shadow Mario#9396
@@ -275,14 +281,17 @@ class Paths
 	}
 	#end
 
-	inline static public function image(key:String, ?library:String):Dynamic
+	inline static public function image(key:String, ?library:String, ?isGlobalPath:Bool):Dynamic
 	{
 		#if ALLOW_MODS
-		var imageToReturn:FlxGraphic = addCustomGraphic(key);
+		var imageToReturn:FlxGraphic = addCustomGraphic(key, isGlobalPath);
 		if (imageToReturn != null)
 			return imageToReturn;
 		#end
-		return getPath('images/$key.png', IMAGE, library);
+		if (isGlobalPath)
+			return getPath('$key.png', IMAGE, library);
+		else
+			return getPath('images/$key.png', IMAGE, library);
 	}
 
 	inline static public function strumConfig(key:String, ?library:String)
@@ -309,18 +318,21 @@ class Paths
 		return 'assets/fonts/$key';
 	}
 
-	inline static public function getSparrowAtlas(key:String, ?library:String)
+	inline static public function getSparrowAtlas(key:String, ?library:String, ?isGlobalPath:Bool)
 	{
-		var imageLoaded:FlxGraphic = addCustomGraphic(key);
-		// trace(imageLoaded);
+		var imageLoaded:FlxGraphic = addCustomGraphic(key, isGlobalPath);
+		//trace(imageLoaded);
 		var xmlExists:Bool = false;
-		if (FileSystem.exists(modXml(key)))
+		if (FileSystem.exists(modXml(key, isGlobalPath)))
 		{
 			xmlExists = true;
 		}
 
-		return FlxAtlasFrames.fromSparrow((imageLoaded != null ? imageLoaded : image(key, library)),
-			(xmlExists ? File.getContent(modXml(key)) : file('images/$key.xml', TEXT, library)));
+		var addPlus:String = 'images/';
+		if (isGlobalPath) addPlus = '';
+
+		return FlxAtlasFrames.fromSparrow((imageLoaded != null ? imageLoaded : image(key, library, isGlobalPath)),
+			(xmlExists ? File.getContent(modXml(key, isGlobalPath)) : file(addPlus + '$key.xml', TEXT, library)));
 		// return FlxAtlasFrames.fromSparrow(image(key, library), file('images/$key.xml', library));
 	}
 
@@ -340,13 +352,13 @@ class Paths
 
 	#if sys
 	// hi shadow mario.
-	static public function addCustomGraphic(key:String):FlxGraphic
+	static public function addCustomGraphic(key:String, ?isGlobalPath:Bool):FlxGraphic
 	{
-		if (FileSystem.exists(modImages(key)))
+		if (FileSystem.exists(modImages(key, isGlobalPath)))
 		{
 			if (!customImagesLoaded.exists(key))
 			{
-				var data = Image.fromFile(modImages(key));
+				var data = Image.fromFile(modImages(key, isGlobalPath));
 				var newBitmap:BitmapData = BitmapData.fromImage(data);
 
 				if (CDevConfig.saveData.gpuBitmap)
@@ -367,18 +379,18 @@ class Paths
 
 	inline static public function mods(key:String = '')
 	{
-		return 'cdev-mods/' + key;
+		return #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + key;
 	}
 
 	inline static public function cdModsFile(key:String = ''):String
 	{
-		return 'cdev-mods/' + key + '/' + 'mod.json';
+		return #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + key + '/' + 'mod.json';
 	}
 
 	inline static public function createModFolder(modFolderName:String = '')
 	{
 		// FileSystem.createDirectory('cdev-mods/$modFolderName');
-		var path:String = 'cdev-mods/$modFolderName/';
+		var path:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$modFolderName/';
 		var childrens:Array<String> = [];
 		var dumbFolders:Array<String> = [
 			'data', // DATA FOLDER
@@ -453,7 +465,7 @@ class Paths
 
 	inline static public function modText(key:String)
 	{
-		return 'cdev-mods/' + key + '.txt';
+		return #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + key + '.txt';
 	}
 
 	inline static public function modJson(key:String)
@@ -487,9 +499,12 @@ class Paths
 		return modFolders('data/' + 'weekcharacters/' + key + '.json');
 	}
 
-	inline static public function modImages(key:String)
+	inline static public function modImages(key:String, ?isGlobalPath:Bool)
 	{
-		return modFolders('images/' + key + '.png');
+		if (isGlobalPath)
+			return modFolders(key + '.png');
+		else
+			return modFolders('images/' + key + '.png');
 	}
 
 	inline static public function modImage(key:String, exist:Bool):Dynamic
@@ -545,9 +560,12 @@ class Paths
 		return modFolders('data/$CHARACTERS_PATH$key.json');
 	}
 
-	inline static public function modXml(key:String)
+	inline static public function modXml(key:String, ?isGlobalPath:Bool)
 	{
-		return modFolders('images/' + key + '.xml');
+		if (isGlobalPath)
+			return modFolders(key + '.xml');
+		else
+			return modFolders('images/' + key + '.xml');
 	}
 
 	inline static public function modStrumConf(key:String)
@@ -598,7 +616,7 @@ class Paths
 			}
 		}
 
-		return 'cdev-mods/' + key; // ok yea, welp.
+		return #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + key; // ok yea, welp.
 	}
 	#end
 }

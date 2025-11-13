@@ -18,7 +18,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 
@@ -26,14 +26,17 @@ class OptionsState extends MusicBeatState
 {
 	var currentStatus:String = "main"; // main, category
 	var curSelected:Int = 0;
-	// var options:Array<String> = ['Controls' , 'Gameplay', 'Appearance', 'Misc'];
+	// var options:Array<String> = ['Controls' , 'Gameplay', 'Appearance', 'Misc', 'Mobile'];
 	var grpOptions:FlxTypedGroup<FlxText>;
 	var menuBG:FlxSprite;
+	#if android
+	final lastStorageType:String = CDevConfig.saveData.storageType;
+	#end
 
 	override function create()
 	{
 		SettingsProperties.ON_PAUSE = false;
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Setting the game options", null);
 		#end
@@ -157,5 +160,19 @@ class OptionsState extends MusicBeatState
 				item.alpha = 1;
 			}
 		}
+	}
+
+	override public function destroy() {
+		super.destroy();
+
+		#if android
+		if (CDevConfig.saveData.storageType != lastStorageType) {
+			File.saveContent(lime.system.System.applicationStorageDirectory + 'storagetype.txt', CDevConfig.saveData.storageType);
+			FlxG.save.flush();
+			game.Conductor.updateSettings();
+			game.CoolUtil.showPopUp('Storage Type has been changed and you needed restart the game!!\nPress OK to close the game.', 'Notice!');
+			lime.system.System.exit(0);
+		}
+		#end
 	}
 }

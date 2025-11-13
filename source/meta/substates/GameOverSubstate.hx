@@ -25,6 +25,8 @@ class GameOverSubstate extends MusicBeatSubstate
 
 	public static var songBpm:Float = 100;
 
+	var canInput:Bool = false;
+
 	public function new(x:Float, y:Float)
 	{
 		var daStage = meta.states.PlayState.curStage;
@@ -68,6 +70,15 @@ class GameOverSubstate extends MusicBeatSubstate
 			week7GmOvSnd.pause();
 			isWeek7 = true;
 		}
+
+		#if mobile
+		addBackButton(FlxG.width - 230, FlxG.height - 200, FlxColor.WHITE, goBack);
+		#end
+
+		// Allow input a second later to prevent accidental gameover skips.
+		new FlxTimer().start(1, function(tmr:FlxTimer) {
+			canInput = true;
+		});
 	}
 	var isWeek7:Bool = false;
 	var played:Bool = false;
@@ -78,20 +89,13 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		FlxG.camera.zoom = FlxMath.lerp(meta.states.PlayState.defaultCamZoom, FlxG.camera.zoom, game.cdev.CDevConfig.utils.bound(1 - (elapsed * 6), 0, 1));
 
-		if (controls.ACCEPT)
+		if (controls.ACCEPT #if mobile || (TouchUtil.pressAction() && !TouchUtil.overlaps(mobileBackButton) && canInput) #end)
 			endBullshit();
 
 		//ass
 		//FlxG.camera.angle = Math.sin((game.Conductor.songPosition / 1000) * (game.Conductor.bpm / 60) * -1.0) * 2;
 
-		if (controls.BACK){
-			FlxG.sound.music.stop();
-			FlxG.sound.music.onComplete = null;
-			if (meta.states.PlayState.isStoryMode)
-				FlxG.switchState(new meta.states.StoryMenuState());
-			else
-				FlxG.switchState(new meta.states.FreeplayState());
-		}
+		if (controls.BACK) goBack();
 
 		if (bf.animation.curAnim.name == "firstDeath" && bf.animation.curAnim.curFrame == 12)
 			FlxG.camera.follow(camFollow, LOCKON, 0.01);
@@ -118,6 +122,15 @@ class GameOverSubstate extends MusicBeatSubstate
 
 		if (FlxG.sound.music.playing)
 			game.Conductor.songPosition = FlxG.sound.music.time;
+	}
+
+	public function goBack() {
+		FlxG.sound.music.stop();
+		FlxG.sound.music.onComplete = null;
+		if (meta.states.PlayState.isStoryMode)
+			FlxG.switchState(new meta.states.StoryMenuState());
+		else
+			FlxG.switchState(new meta.states.FreeplayState());
 	}
 
 	override function beatHit()

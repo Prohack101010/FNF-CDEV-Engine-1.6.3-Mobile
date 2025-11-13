@@ -4,7 +4,7 @@ import flixel.addons.ui.FlxUIInputText;
 import flixel.text.FlxText;
 import flixel.util.FlxSpriteUtil;
 import meta.substates.MusicBeatSubstate;
-import game.cdev.engineutils.Discord.DiscordClient;
+#if DISCORD_RPC import game.cdev.engineutils.Discord.DiscordClient; #end
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.ui.FlxButtonPlus;
@@ -41,7 +41,7 @@ class SongListEditor extends MusicBeatState
 	{
 		super();
 
-		DiscordClient.changePresence("Editing the song list", null);
+		#if DISCORD_RPC DiscordClient.changePresence("Editing the song list", null); #end
 
 		FlxG.mouse.visible = true;
 
@@ -224,9 +224,9 @@ class SongListEditor extends MusicBeatState
 
 		var list:Array<String> = [];
 
-		if (FileSystem.exists('cdev-mods/' + mod + '/songList.txt'))
+		if (FileSystem.exists(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + mod + '/songList.txt'))
 		{
-			list = File.getContent('cdev-mods/' + mod + '/songList.txt').trim().split('\n');
+			list = File.getContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + mod + '/songList.txt').trim().split('\n');
 		}
 		for (i in 0...list.length)
 			list[i] = list[i].trim();

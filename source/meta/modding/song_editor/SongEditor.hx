@@ -306,8 +306,8 @@ class SongEditor extends MusicBeatState
 			}
 			
 			if (allow){
-				var songsfolder:String = Paths.modsPath + "/" + Paths.currentMod + "/songs/";
-				var chartfolder:String = Paths.modsPath + "/" + Paths.currentMod + "/data/charts/";
+				var songsfolder:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end Paths.modsPath + "/" + Paths.currentMod + "/songs/";
+				var chartfolder:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end Paths.modsPath + "/" + Paths.currentMod + "/data/charts/";
 				var curSong:String = songsfolder + input_songName.text + "/";
 				var curSongChart:String = chartfolder + input_songName.text + "/";
 			

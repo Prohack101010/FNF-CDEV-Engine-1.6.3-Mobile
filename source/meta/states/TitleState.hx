@@ -8,7 +8,7 @@ import flixel.addons.display.FlxBackdrop;
 import haxe.Http;
 import flixel.math.FlxMath;
 import flixel.util.FlxGradient;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -43,8 +43,6 @@ class TitleState extends MusicBeatState
 
 	static var isLoaded:Bool = false;
 
-	static var loadedSaves:Bool = false;
-
 	static var initialized:Bool = false;
 
 	var blackScreen:FlxSprite;
@@ -63,36 +61,14 @@ class TitleState extends MusicBeatState
 
 	override public function create():Void
 	{
-		FlxG.sound.muteKeys = [ZERO, NUMPADZERO];
-		FlxG.sound.volumeDownKeys = [MINUS, NUMPADMINUS];
-		FlxG.sound.volumeUpKeys = [PLUS, NUMPADPLUS];
-
-		if (!loadedSaves)
-			CDevConfig.initSaves();
-
 		checkGitHubVersion();
-
-		PlayerSettings.init();
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		// DEBUG BULLSHIT
 
+		MobileData.init();
 		super.create();
-
-		FlxG.save.bind('cdev_engine', 'EngineData');
-
-		if (FlxG.save.data.lastVolume != null){
-			FlxG.sound.volume = FlxG.save.data.lastVolume;
-			trace("updated default volume: "+FlxG.sound.volume);
-		} else{
-			FlxG.save.data.lastVolume = FlxG.sound.volume;
-			trace("created new save for volume");
-		}
-
-		game.cdev.engineutils.Highscore.load();
-
-		loadedSaves = true;
 
 		#if debug
 		CDevConfig.debug = true;
@@ -102,63 +78,13 @@ class TitleState extends MusicBeatState
 		if (lol) trace("nahh :skull:");
 
 		FlxG.fixedTimestep = false;
-
-		if (!initialized)
-		{
-			var diamond:FlxGraphic = FlxGraphic.fromClass(GraphicTransTileDiamond);
-			diamond.persist = true;
-			diamond.destroyOnNoUse = false;
-
-			var transData:TransitionTileData = {
-				asset: diamond,
-				width: 32,
-				height: 32
-			}
-			FlxTransitionableState.defaultTransIn = new TransitionData(FADE, FlxColor.BLACK, 0.5, new FlxPoint(0, -1), transData,
-				new FlxRect(-200, -200, FlxG.width * 1.4, FlxG.height * 1.4));
-			FlxTransitionableState.defaultTransOut = new TransitionData(FADE, FlxColor.BLACK, 0.5, new FlxPoint(0, 1), transData,
-				new FlxRect(-200, -200, FlxG.width * 1.4, FlxG.height * 1.4));
-
-			transIn = FlxTransitionableState.defaultTransIn;
-			transOut = FlxTransitionableState.defaultTransOut;
-		}
-
-		#if windows
-		if (Paths.curModDir.length == 1)
-		{
-			if (!loadMod)
-			{
-				Paths.currentMod = Paths.curModDir[0];
-				loadMod = true;
-			} else{
-				CDevConfig.setWindowProperty(true, "", "");
-			}
-		}
-		else
-		{
-			CDevConfig.setWindowProperty(true, "", "");
-		}
-
-		if (loadMod)
-		{
-			var d:ModFile = Paths.modData();
-
-			CDevConfig.setWindowProperty(false, Reflect.getProperty(d, "window_title"), Paths.modFolders("winicon.png"));
-		}
 		CDevConfig.utils.getStateScript("TitleState", false);
-		#end
 
 		isLoaded = false; // DIE
-		new FlxTimer().start(1, function(tmr:FlxTimer)
+		new FlxTimer().start(0.7, function(tmr:FlxTimer)
 		{
 			startIntro();
 		});
-		#if desktop
-		if (!CDevConfig.saveData.discordRpc)
-			DiscordClient.shutdown();
-		else
-			DiscordClient.initialize();
-		#end
 	}
 
 	var logoBl:FlxSprite;

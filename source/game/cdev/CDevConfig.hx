@@ -2,7 +2,9 @@ package game.cdev;
 
 import haxe.io.Path;
 import haxe.Constraints.Function;
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
+#end
 import lime.graphics.Image;
 import lime.app.Application;
 import haxe.io.Bytes;
@@ -64,12 +66,15 @@ class CDevConfig
 	{
 		#if windows
 		savePath = Sys.getEnv("AppData") + saveFolder;
-		#else #if android
+		#elseif mobile
 		savePath = Path.normalize(Sys.getCwd()+saveFolder);
-		#end #end
+		#end
 
-		saveData = #if !mobile getSaveData(); #else FlxG.save.data;
-		saveData = getDefaultSaves();
+		#if mobile
+		saveData = FlxG.save.data;
+		if (saveData == null) getDefaultSaves();
+		#else
+		saveData = getSaveData();
 		#end
 
 		for (i in Reflect.fields(getDefaultSaves())){
@@ -94,6 +99,7 @@ class CDevConfig
 
 		checkLoadedMods();
 		saveCurrentKeyBinds();
+		FlxG.save.flush();
 	}
 
 	public static function storeSaveData()
@@ -109,8 +115,10 @@ class CDevConfig
 		}
 		if (data.length > 0)
 			File.saveContent(fullPath, data);
+		#elseif mobile
+		FlxG.save.flush();
 		#else
-		trace("This is not a windows target, could not store save data.");
+		trace("This is not a windows/mobile target, could not store save data.");
 		#end
 
 	}
@@ -230,7 +238,12 @@ class CDevConfig
 		// is this actually working??
 
 		Paths.curModDir = saveData.loadedMods;
-		var dirs:Array<String> = #if sys FileSystem.readDirectory('cdev-mods/'); #else []; #end
+		var dirs:Array<String> = [];
+		#if sys
+		if (FileSystem.exists(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/')) //crash fix for mobile devices
+			dirs = FileSystem.readDirectory(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/');
+		#end
+
 		for (i in 0...saveData.loadedMods.length)
 		{
 			//if ()
@@ -298,6 +311,32 @@ class CDevConfig
 	public static function getDefaultSaves()
 	{
 		var save = {
+			/* Mobile */
+			#if android storageType: "EXTERNAL_DATA", #end
+
+			/* Mobile Controls */
+			/* Bool Options */
+			hitboxhint: false,
+
+			/* Int/Float Options */
+			extraKeys: 2,
+			hitboxalpha: #if mobile 0.7 #else 0 #end,
+			mobilePadAlpha: #if mobile 0.6 #else 0 #end,
+
+			/* String Options */
+			hitboxtype: 'Gradient',
+			hitboxLocation: 'Bottom',
+			hitboxmode: 'Normal (New)',
+
+			extraKeyReturn1: 'SHIFT',
+			extraKeyReturn2: 'SPACE',
+			extraKeyReturn3: 'Q',
+			extraKeyReturn4: 'E',
+			extraKeyReturn5: 'W',
+			extraKeyReturn6: 'A',
+			extraKeyReturn7: 'S',
+			extraKeyReturn8: 'D',
+			
 			downscroll: false,
 			songtime: true,
 			flashing: true,

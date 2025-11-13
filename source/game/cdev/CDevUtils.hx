@@ -28,6 +28,7 @@ import flixel.FlxG;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as OpenFlAssets;
 import game.Paths;
+import meta.states.InitState;
 
 using StringTools;
 
@@ -226,7 +227,7 @@ class CDevUtils
 	 */
 	public function getRpcJSON():DiscordJson
 	{
-		var path:String = Paths.modsPath + "/" + Paths.currentMod +"/data/game/Discord.json";
+		var path:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end Paths.modsPath + "/" + Paths.currentMod +"/data/game/Discord.json";
 		trace("Looking for Discord.json in: " + path);
 		if (FileSystem.exists(path)){
 			trace("File Exists!");
@@ -350,7 +351,7 @@ class CDevUtils
 			TitleState.initialized = false;
 			TitleState.closedState = false;
 			TitleState.isLoaded = false;
-			TitleState.loadedSaves = false;
+			InitState.status.loadedSaves = false;
 		}
 		SettingsProperties.reset();
 		FlxG.resetGame();

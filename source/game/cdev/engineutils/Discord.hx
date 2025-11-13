@@ -1,5 +1,6 @@
 package game.cdev.engineutils;
 
+#if DISCORD_RPC
 import game.cdev.CDevUtils.DiscordJson;
 import game.cdev.CDevConfig;
 import Sys.sleep;
@@ -116,3 +117,4 @@ class DiscordClient
 	public static function changePresence(details:String, state:Null<String>, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float){}
 	#end
 }
+#end

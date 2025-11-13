@@ -191,139 +191,139 @@ class Controls extends FlxActionSet
 	public var UP(get, never):Bool;
 
 	inline function get_UP()
-		return _up.check();
+		return _up.check() || mobileControlsPressed(MobileInputID.NOTE_UP);
 
 	public var LEFT(get, never):Bool;
 
 	inline function get_LEFT()
-		return _left.check();
+		return _left.check() || mobileControlsPressed(MobileInputID.NOTE_LEFT);
 
 	public var RIGHT(get, never):Bool;
 
 	inline function get_RIGHT()
-		return _right.check();
+		return _right.check() || mobileControlsPressed(MobileInputID.NOTE_RIGHT);
 
 	public var DOWN(get, never):Bool;
 
 	inline function get_DOWN()
-		return _down.check();
+		return _down.check() || mobileControlsPressed(MobileInputID.NOTE_DOWN);
 
 	public var UP_P(get, never):Bool;
 
 	inline function get_UP_P()
-		return _upP.check();
+		return _upP.check() || mobileControlsJustPressed(MobileInputID.NOTE_UP);
 
 	public var LEFT_P(get, never):Bool;
 
 	inline function get_LEFT_P()
-		return _leftP.check();
+		return _leftP.check() || mobileControlsJustPressed(MobileInputID.NOTE_LEFT);
 
 	public var RIGHT_P(get, never):Bool;
 
 	inline function get_RIGHT_P()
-		return _rightP.check();
+		return _rightP.check() || mobileControlsJustPressed(MobileInputID.NOTE_RIGHT);
 
 	public var DOWN_P(get, never):Bool;
 
 	inline function get_DOWN_P()
-		return _downP.check();
+		return _downP.check() || mobileControlsJustPressed(MobileInputID.NOTE_DOWN);
 
 	public var UP_R(get, never):Bool;
 
 	inline function get_UP_R()
-		return _upR.check();
+		return _upR.check() || mobileControlsReleased(MobileInputID.NOTE_UP);
 
 	public var LEFT_R(get, never):Bool;
 
 	inline function get_LEFT_R()
-		return _leftR.check();
+		return _leftR.check() || mobileControlsReleased(MobileInputID.NOTE_LEFT);
 
 	public var RIGHT_R(get, never):Bool;
 
 	inline function get_RIGHT_R()
-		return _rightR.check();
+		return _rightR.check() || mobileControlsReleased(MobileInputID.NOTE_RIGHT);
 
 	public var DOWN_R(get, never):Bool;
 
 	inline function get_DOWN_R()
-		return _downR.check();
+		return _downR.check() || mobileControlsReleased(MobileInputID.NOTE_DOWN);
 
 	// UI CONTROLS DANG IT //
 	public var UI_UP(get, never):Bool;
 
 	inline function get_UI_UP()
-		return _ui_up.check();
+		return _ui_up.check() || mobileControlsPressed(MobileInputID.UP);
 
 	public var UI_LEFT(get, never):Bool;
 
 	inline function get_UI_LEFT()
-		return _ui_left.check();
+		return _ui_left.check() || mobileControlsPressed(MobileInputID.LEFT);
 
 	public var UI_RIGHT(get, never):Bool;
 
 	inline function get_UI_RIGHT()
-		return _ui_right.check();
+		return _ui_right.check() || mobileControlsPressed(MobileInputID.RIGHT);
 
 	public var UI_DOWN(get, never):Bool;
 
 	inline function get_UI_DOWN()
-		return _ui_down.check();
+		return _ui_down.check() || mobileControlsPressed(MobileInputID.DOWN);
 
 	public var UI_UP_P(get, never):Bool;
 
 	inline function get_UI_UP_P()
-		return _ui_upP.check();
+		return _ui_upP.check() || mobileControlsJustPressed(MobileInputID.UP);
 
 	public var UI_LEFT_P(get, never):Bool;
 
 	inline function get_UI_LEFT_P()
-		return _ui_leftP.check();
+		return _ui_leftP.check() || mobileControlsJustPressed(MobileInputID.LEFT);
 
 	public var UI_RIGHT_P(get, never):Bool;
 
 	inline function get_UI_RIGHT_P()
-		return _ui_rightP.check();
+		return _ui_rightP.check() || mobileControlsJustPressed(MobileInputID.RIGHT);
 
 	public var UI_DOWN_P(get, never):Bool;
 
 	inline function get_UI_DOWN_P()
-		return _ui_downP.check();
+		return _ui_downP.check() || mobileControlsJustPressed(MobileInputID.DOWN);
 
 	public var UI_UP_R(get, never):Bool;
 
 	inline function get_UI_UP_R()
-		return _ui_upR.check();
+		return _ui_upR.check() || mobileControlsReleased(MobileInputID.UP);
 
 	public var UI_LEFT_R(get, never):Bool;
 
 	inline function get_UI_LEFT_R()
-		return _ui_leftR.check();
+		return _ui_leftR.check() || mobileControlsReleased(MobileInputID.LEFT);
 
 	public var UI_RIGHT_R(get, never):Bool;
 
 	inline function get_UI_RIGHT_R()
-		return _ui_rightR.check();
+		return _ui_rightR.check() || mobileControlsReleased(MobileInputID.RIGHT);
 
 	public var UI_DOWN_R(get, never):Bool;
 
 	inline function get_UI_DOWN_R()
-		return _ui_downR.check();
+		return _ui_downR.check() || mobileControlsReleased(MobileInputID.DOWN);
 
 	/////////////////////////////////////
 	public var ACCEPT(get, never):Bool;
 
 	inline function get_ACCEPT()
-		return _accept.check();
+		return _accept.check() || mobileControlsJustPressed(MobileInputID.A);
 
 	public var BACK(get, never):Bool;
 
 	inline function get_BACK()
-		return _back.check();
+		return _back.check() || mobileControlsJustPressed(MobileInputID.B);
 
 	public var PAUSE(get, never):Bool;
 
 	inline function get_PAUSE()
-		return _pause.check();
+		return _pause.check() || mobileControlsJustPressed(MobileInputID.P);
 
 	public var RESET(get, never):Bool;
 
@@ -892,5 +892,154 @@ class Controls extends FlxActionSet
 	inline static function isGamepad(input:FlxActionInput, deviceID:Int)
 	{
 		return input.device == GAMEPAD && (deviceID == FlxInputDeviceID.ALL || input.deviceID == deviceID);
+	}
+
+	public function mobileControlsJustPressed(id:MobileInputID):Bool
+	{
+		final state:MusicBeatState = MusicBeatState.getState();
+		final substate:MusicBeatSubstate = MusicBeatSubstate.getSubState();
+		final extraSubstate:MusicBeatSubstate = MusicBeatSubstate.getExtraSubState();
+		var bools:Array<Bool> = [false, false, false, false, false, false];
+
+		if (state != null)
+		{
+			if (state.mobilePad != null)
+				bools[0] = state.mobilePad.buttonJustPressed(id);
+
+			if (state.hitbox != null)
+				bools[1] = state.hitbox.buttonJustPressed(id);
+		}
+
+		if (substate != null)
+		{
+			if (substate.mobilePad != null)
+				bools[2] = substate.mobilePad.buttonJustPressed(id);
+
+			if (substate.hitbox != null)
+				bools[3] = substate.hitbox.buttonJustPressed(id);
+
+			if (extraSubstate != null)
+			{
+				if (extraSubstate.mobilePad != null)
+					bools[4] = extraSubstate.mobilePad.buttonJustPressed(id);
+
+				if (extraSubstate.hitbox != null)
+					bools[5] = extraSubstate.hitbox.buttonJustPressed(id);
+			}
+		}
+
+		return bools.contains(true);
+	}
+
+	public function mobileControlsJustReleased(id:MobileInputID):Bool
+	{
+		final state:MusicBeatState = MusicBeatState.getState();
+		final substate:MusicBeatSubstate = MusicBeatSubstate.getSubState();
+		final extraSubstate:MusicBeatSubstate = MusicBeatSubstate.getExtraSubState();
+		var bools:Array<Bool> = [false, false, false, false, false, false];
+
+		if (state != null)
+		{
+			if (state.mobilePad != null)
+				bools[0] = state.mobilePad.buttonJustReleased(id);
+
+			if (state.hitbox != null)
+				bools[1] = state.hitbox.buttonJustReleased(id);
+		}
+
+		if (substate != null)
+		{
+			if (substate.mobilePad != null)
+				bools[2] = substate.mobilePad.buttonJustReleased(id);
+
+			if (substate.hitbox != null)
+				bools[3] = substate.hitbox.buttonJustReleased(id);
+
+			if (extraSubstate != null)
+			{
+				if (extraSubstate.mobilePad != null)
+					bools[4] = extraSubstate.mobilePad.buttonJustReleased(id);
+
+				if (extraSubstate.hitbox != null)
+					bools[5] = extraSubstate.hitbox.buttonJustReleased(id);
+			}
+		}
+
+		return bools.contains(true);
+	}
+
+	public function mobileControlsPressed(id:MobileInputID):Bool
+	{
+		final state:MusicBeatState = MusicBeatState.getState();
+		final substate:MusicBeatSubstate = MusicBeatSubstate.getSubState();
+		final extraSubstate:MusicBeatSubstate = MusicBeatSubstate.getExtraSubState();
+		var bools:Array<Bool> = [false, false, false, false, false, false];
+
+		if (state != null)
+		{
+			if (state.mobilePad != null)
+				bools[0] = state.mobilePad.buttonPressed(id);
+
+			if (state.hitbox != null)
+				bools[1] = state.hitbox.buttonPressed(id);
+		}
+
+		if (substate != null)
+		{
+			if (substate.mobilePad != null)
+				bools[2] = substate.mobilePad.buttonPressed(id);
+
+			if (substate.hitbox != null)
+				bools[3] = substate.hitbox.buttonPressed(id);
+
+			if (extraSubstate != null)
+			{
+				if (extraSubstate.mobilePad != null)
+					bools[4] = extraSubstate.mobilePad.buttonPressed(id);
+
+				if (extraSubstate.hitbox != null)
+					bools[5] = extraSubstate.hitbox.buttonPressed(id);
+			}
+		}
+
+		return bools.contains(true);
+	}
+
+	// this one probably useless b
+	public function mobileControlsReleased(id:MobileInputID):Bool
+	{
+		final state:MusicBeatState = MusicBeatState.getState();
+		final substate:MusicBeatSubstate = MusicBeatSubstate.getSubState();
+		final extraSubstate:MusicBeatSubstate = MusicBeatSubstate.getExtraSubState();
+		var bools:Array<Bool> = [false, false, false, false, false, false];
+
+		if (state != null)
+		{
+			if (state.mobilePad != null)
+				bools[0] = state.mobilePad.buttonReleased(id);
+
+			if (state.hitbox != null)
+				bools[1] = state.hitbox.buttonReleased(id);
+		}
+
+		if (substate != null)
+		{
+			if (substate.mobilePad != null)
+				bools[2] = substate.mobilePad.buttonReleased(id);
+
+			if (substate.hitbox != null)
+				bools[3] = substate.hitbox.buttonReleased(id);
+
+			if (extraSubstate != null)
+			{
+				if (extraSubstate.mobilePad != null)
+					bools[4] = extraSubstate.mobilePad.buttonReleased(id);
+
+				if (extraSubstate.hitbox != null)
+					bools[5] = extraSubstate.hitbox.buttonReleased(id);
+			}
+		}
+
+		return bools.contains(true);
 	}
 }

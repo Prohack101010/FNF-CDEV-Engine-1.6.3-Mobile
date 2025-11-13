@@ -25,6 +25,12 @@ class SettingsProperties
 	public static var holdTime:Float = 0;
 	public static var ON_PAUSE:Bool = false;
 
+	#if android
+	static var storageTypes:Array<String> = ["EXTERNAL_DATA", "EXTERNAL_OBB", "EXTERNAL_MEDIA", "EXTERNAL"];
+	static var externalPaths:Array<String> = StorageUtil.checkExternalPaths(true);
+	static var customPaths:Array<String> = StorageUtil.getCustomStorageDirectories(false);
+	#end
+
 	public static function setCurrentClass(curClass:Dynamic)
 	{
 		currentClass = cast curClass;
@@ -39,6 +45,11 @@ class SettingsProperties
 
 	public static function load_default():Void
 	{
+		#if android
+		storageTypes = storageTypes.concat(customPaths); //Get Custom Paths From File
+		storageTypes = storageTypes.concat(externalPaths); //Get SD Card Path
+		#end
+
 		// CONTROLS//
 		create_category("Controls", [],function()
 		{
@@ -62,22 +73,23 @@ class SettingsProperties
 			new BaseSettings("Camera Beat Zoom", ["OFF", "ON"], "If enabled, the camera will zoom on every 4th beat.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "camZoom"),
 			new BaseSettings("Camera Movement", ["OFF", "ON"], "If disabled, the camera won't move based on the current character sing animation", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "camMovement"),
 			new BaseSettings("Note Offset", ["", ""], "If you think that your audio was late / early, try to change this setting!", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER)
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed)
 				{
 					FlxG.switchState(new meta.states.OffsetTest());
 				}
 
-				var daValueToAdd:Int = FlxG.keys.pressed.RIGHT ? 1 : -1;
-				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT)
+				var daValueToAdd:Int = (FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonRight?.pressed) ? 1 : -1;
+				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonLeft.pressed || currentClass?.mobilePad?.buttonRight.pressed)
 					holdTime += elapsed;
 				else
 					holdTime = 0;
 	
-				var e = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT];
+				var e = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, currentClass?.mobilePad?.buttonLeft.pressed, currentClass?.mobilePad?.buttonRight.pressed];
 				if (holdTime <= 0 && e.contains(true))
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 	
-				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT)
+				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || 
+					currentClass?.mobilePad?.buttonLeft.justPressed || currentClass?.mobilePad?.buttonRight.justPressed)
 				{
 					CDevConfig.setData("offset", CDevConfig.getData("offset")+daValueToAdd);
 	
@@ -95,17 +107,18 @@ class SettingsProperties
 		create_category("Graphics", [
 			new BaseSettings("Shaders", ["Disabled", "Enabled"], "Whether to enable / disable shaders in the engine.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "shaders", false),
 			new BaseSettings("FPS Cap", ["", ""], "Choose how many frames per second that this game should run at.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				var daValueToAdd:Int = FlxG.keys.pressed.RIGHT ? 1 : -1;
-				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT)
+				var daValueToAdd:Int = (FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonRight?.pressed) ? 1 : -1;
+				if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonLeft.pressed || currentClass?.mobilePad?.buttonRight.pressed)
 					holdTime += elapsed;
 				else
 					holdTime = 0;
 		
-				var e = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT];
+				var e = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, currentClass?.mobilePad?.buttonLeft.pressed, currentClass?.mobilePad?.buttonRight.pressed];
 				if (holdTime <= 0 && e.contains(true))
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 	
-				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT)
+				if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || 
+					currentClass?.mobilePad?.buttonLeft.justPressed || currentClass?.mobilePad?.buttonRight.justPressed)
 				{
 					CDevConfig.setData("fpscap", CDevConfig.getData("fpscap")+daValueToAdd);
 		
@@ -121,7 +134,7 @@ class SettingsProperties
 			}, function(){}, ""),	
 			new BaseSettings("Antialiasing", ["OFF", "ON"], "If disabled, your game will run as smooth but at cost of graphics.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "antialiasing", false),
 			new BaseSettings("Auto Pause", ["Disabled", "Enabled"], "If disabled, the game will no longer pauses whenever the game window is unfocused.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					CDevConfig.saveData.autoPause = !CDevConfig.saveData.autoPause;
 					FlxG.autoPause = CDevConfig.saveData.autoPause;
@@ -141,7 +154,7 @@ class SettingsProperties
 					bs.description = "Press ENTER to clear memory cache.";
 				}
 				
-				if (FlxG.keys.justPressed.ENTER){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					openfl.utils.Assets.cache.clear();
 					Paths.destroyLoadedImages();
@@ -154,8 +167,8 @@ class SettingsProperties
 			new BaseSettings("Engine Watermark", ["Hide", "Show"], "Whether to show CDEV Engine's watermark in the game.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "engineWM"),	
 			new BaseSettings("Opponent Notes in Midscroll", ["Hide", "Show"], "If enabled, opponent notes will be slightly visible.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "bgNote"),
 			new BaseSettings("Strum Lane", ["Hide", "Show"], "If enabled, your strum notes playfield will have a black background.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "bgLane"),
-			#if desktop new BaseSettings("Discord Rich Presence", ["", ""], "If enabled, your current game information will be shared to Discord RPC.\n(Changing this option will restart the game!)", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER){
+			#if DISCORD_RPC new BaseSettings("Discord Rich Presence", ["", ""], "If enabled, your current game information will be shared to Discord RPC.\n(Changing this option will restart the game!)", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					CDevConfig.saveData.discordRpc = !CDevConfig.saveData.discordRpc;
 					Main.discordRPC = CDevConfig.saveData.discordRpc;
 					CDevConfig.utils.restartGame();
@@ -164,7 +177,7 @@ class SettingsProperties
 			}, function(){}, "", false),#end
 			new BaseSettings("Hit Effect Style", ["Splash", "Ripple"], "Choose your preferred Hit Effect Style.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "noteRipples", false),
 			new BaseSettings("Set Rating Sprite Position", ["Press ENTER",""], "Set your preferred Rating sprite position.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					currentClass.hideAllOptions();
 					var newState:RatingPosition = new RatingPosition(ON_PAUSE);
 					currentClass.openSubState(newState);
@@ -179,7 +192,7 @@ class SettingsProperties
 
 		create_category("Misc", [
 			new BaseSettings("Resources Info Mode", ["", ""], "Choose your preferred Resources Text Info Mode.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER)
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed)
 				{
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					var things:Array<String> = ["fps", "fps-mem", "mem", "hide"];
@@ -206,7 +219,7 @@ class SettingsProperties
 				bs.value_name[0] = CDevConfig.saveData.performTxt;
 			}, function(){}, ""),
 			new BaseSettings("Game Log Window", ["", ""], "Whether to show / hide TGame Log Window.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					CDevConfig.saveData.showTraceLogAt += 1;
 					if (CDevConfig.saveData.showTraceLogAt < 0)
@@ -224,7 +237,7 @@ class SettingsProperties
 			new BaseSettings("Game Log Main Message", ["Hide", "Show"], "Whether to show the tips text in the Game Log Window.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "traceLogMessage", false),	
 			new BaseSettings("Check For Updates", ["Disable", "Enabled"], "If enabled, the game will check for updates.", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, function(){}, "checkNewVersion", false),
 			new BaseSettings("Autosave Chart File", ["", ""], "If enabled, the game will autosave the chart as a file. (Press SHIFT for more options)", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
-				if (FlxG.keys.justPressed.ENTER){
+				if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed){
 					FlxG.sound.play(Paths.sound('confirmMenu'));
 					CDevConfig.saveData.autosaveChart = !CDevConfig.saveData.autosaveChart;
 					if (CDevConfig.saveData.autosaveChart){
@@ -240,6 +253,81 @@ class SettingsProperties
 				
 			}, function(){},"", false),
 		], null);
+
+		create_category("Mobile", [
+			new BaseSettings("Extra Controls", ["", ""], "Allow Extra Controls", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
+				create_number('int', "extraKeys", "", 1, 0, 4, elapsed, bs);
+			}),
+
+			new BaseSettings("Hitbox Design", ['', ''], "Choose how your hitbox should look like.",
+				SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings) {
+					create_string('hitboxtype', ['Gradient', 'No Gradient' , 'No Gradient (Old)'], elapsed, bs);
+			}),
+
+			new BaseSettings("Hitbox Hint", ["Disabled", "Enabled"], "Hitbox Hint", SettingsType.BOOL, function(elapsed:Float, bs:BaseSettings){}, "hitboxhint"),
+
+			new BaseSettings("Hitbox Opacity", ["", ""], "Selects the opacity for the hitbox buttons.", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings){
+				create_number('percent', "hitboxalpha", " Opacity", 0.1, 0, 1, elapsed, bs);
+			}),
+
+			#if android
+			new BaseSettings("Storage Type", ['', ''], "Which folder CDev Engine should use?", SettingsType.MIXED, function(elapsed:Float, bs:BaseSettings) {
+				create_string('storageType', storageTypes, elapsed, bs);
+			}),
+			#end
+		], null);
+	}
+
+	public static function create_string(variable:String, arrayThing:Array<String>, elapsed:Float, bs:BaseSettings) {
+		if (FlxG.keys.justPressed.ENTER || currentClass?.mobilePad?.buttonA?.justPressed)
+		{
+			FlxG.sound.play(Paths.sound('confirmMenu'));
+			var things:Array<String> = arrayThing;
+			var curIndex:Int = 0;
+
+			for (i in things){
+				if (CDevConfig.getData(variable) == i) {
+					curIndex = things.indexOf(i);
+					break;
+				}
+			}
+
+			curIndex += 1;
+			if (curIndex >= things.length)
+				curIndex = 0;
+			CDevConfig.setData(variable, things[curIndex]);
+		}
+
+		bs.value_name[0] = CDevConfig.getData(variable);
+	}
+
+	//make more easier to add mobile options
+	public static function create_number(type:String = "int", variable:String, postfix:String, changeValue:Dynamic, minNum:Dynamic, maxNum:Dynamic, elapsed:Float, bs:BaseSettings) {
+		var daValueToAdd:Dynamic = (FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonRight?.pressed) ? changeValue : -changeValue;
+		if (FlxG.keys.pressed.LEFT || FlxG.keys.pressed.RIGHT || currentClass?.mobilePad?.buttonLeft.pressed || currentClass?.mobilePad?.buttonRight.pressed)
+			holdTime += elapsed;
+		else
+			holdTime = 0;
+		
+		var e = [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, currentClass?.mobilePad?.buttonLeft.pressed, currentClass?.mobilePad?.buttonRight.pressed];
+		if (holdTime <= 0 && e.contains(true))
+			FlxG.sound.play(Paths.sound('scrollMenu'));
+	
+		if (holdTime > 0.5 || FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || 
+			currentClass?.mobilePad?.buttonLeft.justPressed || currentClass?.mobilePad?.buttonRight.justPressed)
+		{
+			CDevConfig.setData(variable, CDevConfig.getData(variable)+daValueToAdd);
+		
+			if (CDevConfig.getData(variable) <= minNum)
+				CDevConfig.setData(variable, minNum);
+
+			if (CDevConfig.getData(variable) >= maxNum)
+				CDevConfig.setData(variable, maxNum);
+		}
+		if (type.toUpperCase() == 'PERCENT')
+			bs.value_name[0] = "%" + CDevConfig.getData(variable) * 100 + postfix;
+		else
+			bs.value_name[0] = CDevConfig.getData(variable) + postfix;
 	}
 
 	public static function create_category(name:String, child:Array<BaseSettings>, ?onPress:Dynamic):Void
@@ -299,8 +387,11 @@ class BaseSettings
 	public var onUpdate:(Float, BaseSettings)->Void;
 	public var updateDisplay:Void->Void;
 
-	public function new(n:String, v:Array<String>, d:String, t:Int, oc:(Float, BaseSettings)->Void, ud:Void->Void, ?sdf:String="", ?canPause:Bool=true)
+	public function new(n:String, v:Array<String>, d:String, t:Int, oc:(Float, BaseSettings)->Void, ?ud:Void->Void = null, ?sdf:String="", ?canPause:Bool=true)
 	{
+		if (ud == null)
+			ud = function(){};
+
 		name = n;
 		value_name = v;
 		description = d;

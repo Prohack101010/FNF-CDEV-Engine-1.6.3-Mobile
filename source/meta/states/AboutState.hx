@@ -4,7 +4,7 @@ import sys.FileSystem;
 import sys.io.File;
 import openfl.display.BlendMode;
 import flixel.addons.transition.FlxTransitionableState;
-#if desktop import game.cdev.engineutils.Discord.DiscordClient; #end
+#if DISCORD_RPC import game.cdev.engineutils.Discord.DiscordClient; #end
 import game.cdev.CDevConfig;
 import flixel.tweens.FlxTween;
 import game.objects.AttachedSprite;
@@ -48,7 +48,7 @@ class AboutState extends MusicBeatState
 		FlxG.sound.muteKeys = [ZERO, NUMPADZERO];
 		FlxG.sound.volumeDownKeys = [MINUS, NUMPADMINUS];
 		FlxG.sound.volumeUpKeys = [PLUS, NUMPADPLUS];
-		#if desktop
+		#if DISCORD_RPC
 		// Updating Discord Rich Presence
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Reading Engine's About Screen", null);
@@ -85,6 +85,7 @@ class AboutState extends MusicBeatState
 			{
 				creditText.xAdd -= 70;
 			}
+			creditText.ID = i;
 			creditText.isOptionItem = true;
 			creditText.targetY = i;
 			grpCredit.add(creditText);
@@ -132,6 +133,21 @@ class AboutState extends MusicBeatState
 			changeSelection(1);
 		}
 
+		for (item in grpCredit.members)
+		{
+			if (FlxG.mouse.overlaps(item))
+			{
+				if (FlxG.mouse.justPressed)
+				{
+					var ignore:Bool = unselectableCredit(item.ID);
+					if (curSelected != item.ID && !ignore)
+						changeSelection(item.ID, true);
+					else if (!ignore)
+						CDevConfig.utils.openURL(mainCredits[curSelected].link);
+				}
+			}
+		}
+
 		if (controls.BACK)
 		{
 			if (colorTween != null)
@@ -149,12 +165,16 @@ class AboutState extends MusicBeatState
 
 	var colorTween:FlxTween;
 
-	function changeSelection(change:Int = 0)
+	function changeSelection(change:Int = 0, forceChange:Bool = false)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 		do
 		{
-			curSelected += change;
+			if (forceChange)
+				curSelected = change;
+			else
+				curSelected += change;
+
 			if (curSelected < 0)
 				curSelected = mainCredits.length - 1;
 			if (curSelected >= mainCredits.length)
@@ -205,9 +225,9 @@ class AboutState extends MusicBeatState
 	{
 		for (s in 0...Paths.curModDir.length)
 		{
-			if (FileSystem.exists('cdev-mods/'+Paths.curModDir[s]+'/credits.txt'))
+			if (FileSystem.exists(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/'+Paths.curModDir[s]+'/credits.txt'))
 			{
-				var fullText:String = File.getContent('cdev-mods/'+Paths.curModDir[s]+'/credits.txt');
+				var fullText:String = File.getContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/'+Paths.curModDir[s]+'/credits.txt');
 				var splittedArray:Array<String> = fullText.split('\n');
 				var textData:Array<CreditsInfo> = [];
 	

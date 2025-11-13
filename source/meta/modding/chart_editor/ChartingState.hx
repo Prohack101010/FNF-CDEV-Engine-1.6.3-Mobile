@@ -4,7 +4,7 @@ import lime.media.AudioBuffer;
 import haxe.io.Bytes;
 import openfl.geom.Rectangle;
 import flixel.addons.display.FlxSliceSprite;
-import game.cdev.engineutils.Discord.DiscordClient;
+#if DISCORD_RPC import game.cdev.engineutils.Discord.DiscordClient; #end
 import flixel.group.FlxSpriteGroup;
 import game.cdev.log.GameLog;
 import meta.states.*;
@@ -169,7 +169,7 @@ class ChartingState extends MusicBeatState
 		crapFollow = new FlxObject(0, 0, 1, 1);
 		add(crapFollow);
 
-		DiscordClient.changePresence("Chart Editor", null, null, true);
+		#if DISCORD_RPC DiscordClient.changePresence("Chart Editor", null, null, true); #end
 
 		var bgShit:FlxSprite = new FlxSprite(0, 0).loadGraphic(Paths.image('aboutMenu'));
 		bgShit.alpha = 0.1;

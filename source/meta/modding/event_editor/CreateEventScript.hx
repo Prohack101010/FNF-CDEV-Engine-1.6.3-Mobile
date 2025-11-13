@@ -164,7 +164,7 @@ function onScriptCall(val1, val2)
     
         if (data.length > 0)
         {
-			File.saveContent('cdev-mods/' + Paths.curModDir[0] + '/events/${input_modName.text}.hx' , data);
+			File.saveContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[0] + '/events/${input_modName.text}.hx' , data);
 		}
     }
 }

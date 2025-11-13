@@ -35,7 +35,7 @@ import game.*;
 import game.cdev.*;
 import game.song.*;
 import game.objects.*;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 #if sys
@@ -374,9 +374,12 @@ class PlayState extends MusicBeatState
 		Conductor.updateSettings();
 
 		ScriptSupport.currentMod = fromMod;
-		ScriptSupport.parseSongConfig();
-		scripts = new ScriptData(ScriptSupport.scripts, curSong, this);
-		scripts.loadFiles();
+		try {
+			ScriptSupport.parseSongConfig();
+			scripts = new ScriptData(ScriptSupport.scripts, curSong, this);
+			scripts.loadFiles();
+		}
+		catch(e:Dynamic) {}
 
 		Paths.currentMod = fromMod;
 		initCutsceneScripts();
@@ -394,7 +397,7 @@ class PlayState extends MusicBeatState
 
 		strumXpos = CDevConfig.saveData.middlescroll ? -260 : 65;
 
-		#if desktop
+		#if DISCORD_RPC
 		storyDifficultyText = CDevConfig.utils.capitalize(difficultyName).trim();
 		detailsText = SONG.song + " // " + storyDifficultyText + (isStoryMode ? " // Story Mode" : " // Freeplay");
 		
@@ -860,7 +863,7 @@ class PlayState extends MusicBeatState
 			defaultCamZoom = Stage.STAGEZOOM;
 			// isPixel = Stage.PIXELSTAGE;
 		}
-		scripts.executeFunc('createStage', []); // incase you wanted to code the stage by yourselves.
+		if (scripts != null) scripts.executeFunc('createStage', []); // incase you wanted to code the stage by yourselves.
 
 		if (isStoryMode)
 		{
@@ -999,7 +1002,7 @@ class PlayState extends MusicBeatState
 
 		Conductor.songPosition = -5000;
 
-		scripts.executeFunc('create', []);
+		if (scripts != null) scripts.executeFunc('create', []);
 
 		strumLine = new FlxSprite(strumXpos, 70).makeGraphic(FlxG.width, 10);
 		strumLine.scrollFactor.set();
@@ -1050,6 +1053,7 @@ class PlayState extends MusicBeatState
 		FlxG.fixedTimestep = false;
 
 		initHUD();
+		addMobileControls();
 
 		startingSong = true;
 
@@ -1098,7 +1102,7 @@ class PlayState extends MusicBeatState
 		}
 
 		super.create();
-		scripts.executeFunc('postCreate', []);
+		if (scripts != null) scripts.executeFunc('postCreate', []);
 	}
 
 	/**
@@ -1248,11 +1252,11 @@ class PlayState extends MusicBeatState
 
 		var pathIntro:Array<String> = [
 			Paths.modChartPath(SONG.song + "/intro.hx"),
-			"cdev-mods/" + fromMod + "/scripts/intro.hx"
+			#if mobile StorageUtil.getExternalStorageDirectory() + #end "cdev-mods/" + fromMod + "/scripts/intro.hx"
 		];
 		var pathOutro:Array<String> = [
 			Paths.modChartPath(SONG.song + "/outro.hx"),
-			"cdev-mods/" + fromMod + "/scripts/outro.hx"
+			#if mobile StorageUtil.getExternalStorageDirectory() + #end "cdev-mods/" + fromMod + "/scripts/outro.hx"
 		];
 
 		for (i in pathIntro)
@@ -1754,7 +1758,7 @@ class PlayState extends MusicBeatState
 
 		if (enableCountdown)
 		{
-			scripts.executeFunc('onStartCountdown', []);
+			if (scripts != null) scripts.executeFunc('onStartCountdown', []);
 
 			Conductor.songPosition = 0;
 			Conductor.songPosition -= ((Conductor.crochet * 5) + Conductor.offset) / songSpeed;
@@ -1868,7 +1872,7 @@ class PlayState extends MusicBeatState
 						FlxG.sound.play(Paths.sound(introAudio[swagCounter] + altSuffix), 0.6);
 					case 4:
 				}
-				scripts.executeFunc('onCountdown', [swagCounter]);
+				if (scripts != null) scripts.executeFunc('onCountdown', [swagCounter]);
 				swagCounter += 1;
 				// generateSong('fresh');
 			}, 5);
@@ -1927,12 +1931,12 @@ class PlayState extends MusicBeatState
 			FlxTween.tween(songPosBGspr, {alpha: 1}, Conductor.crochet / 1000, {ease: FlxEase.linear});
 			FlxTween.tween(songPosBar, {alpha: 1}, Conductor.crochet / 1000, {ease: FlxEase.linear});
 			
-			#if desktop
+			#if DISCORD_RPC
 			songLength = FlxG.sound.music.length;
 			DiscordClient.changePresence(detailsText, daRPCInfo, iconRPC, true, songLength);
 			#end
 
-			scripts.executeFunc('onStartSong', []);
+			if (scripts != null) scripts.executeFunc('onStartSong', []);
 		}
 	}
 
@@ -2084,7 +2088,7 @@ class PlayState extends MusicBeatState
 					// onEventLoaded will only be called once.
 					if (!calledEvents.contains(eventName))
 					{
-						scripts.executeFunc("onEventLoaded", [event.EVENT_NAME, event.value1, event.value2]);
+						if (scripts != null) scripts.executeFunc("onEventLoaded", [event.EVENT_NAME, event.value1, event.value2]);
 						calledEvents.push(eventName);
 					}
 				}
@@ -2301,7 +2305,7 @@ class PlayState extends MusicBeatState
 
 	override function destroy()
 	{
-		scripts.executeFunc("onDestroy", []);
+		if (scripts != null) scripts.executeFunc("onDestroy", []);
 		super.destroy();
 	}
 
@@ -2344,17 +2348,13 @@ class PlayState extends MusicBeatState
 			}
 			paused = false;
 
-			#if desktop
+			#if DISCORD_RPC
 			if (startTimer.finished)
-			{
 				DiscordClient.changePresence(detailsText, daRPCInfo, iconRPC, true, songLength - Conductor.songPosition);
-			}
 			else
-			{
 				DiscordClient.changePresence(detailsText, daRPCInfo, iconRPC);
-			}
 			#end
-			scripts.executeFunc("onGameResumed", []);
+			if (scripts != null) scripts.executeFunc("onGameResumed", []);
 		}
 
 		super.closeSubState();
@@ -2394,17 +2394,13 @@ class PlayState extends MusicBeatState
 
 	override public function onFocus():Void
 	{
-		#if desktop
+		#if DISCORD_RPC
 		if (health > 0 && !paused && CDevConfig.saveData.autoPause)
 		{
 			if (Conductor.songPosition > 0.0)
-			{
 				DiscordClient.changePresence(detailsText, daRPCInfo, iconRPC, true, songLength - Conductor.songPosition);
-			}
 			else
-			{
 				DiscordClient.changePresence(detailsText, SONG.song + " (" + storyDifficultyText + ")", iconRPC);
-			}
 		}
 		#end
 
@@ -2413,7 +2409,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocusLost():Void
 	{
-		#if desktop
+		#if DISCORD_RPC
 		if (CDevConfig.saveData.autoPause)
 		{
 			if (health > 0 && !paused)
@@ -2481,7 +2477,7 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
-		scripts.executeFunc('update', [elapsed]);
+		if (scripts != null) scripts.executeFunc('update', [elapsed]);
 
 		switch (curStage)
 		{
@@ -2515,7 +2511,7 @@ class PlayState extends MusicBeatState
 
 		updateUITexts(elapsed);
 
-		if (!inCutscene && controls.PAUSE && startedCountdown && canPause) pauseGame();
+		if (!inCutscene && (controls.PAUSE #if android || FlxG.android.justReleased.BACK #end) && startedCountdown && canPause) pauseGame();
 
 		iconUpdateFunction(elapsed); 
 		cdevTestMode(elapsed);
@@ -2537,7 +2533,7 @@ class PlayState extends MusicBeatState
 		if (isModStage)
 			stageHandler.onUpdate(elapsed);
 
-		scripts.executeFunc('postUpdate', [elapsed]);
+		if (scripts != null) scripts.executeFunc('postUpdate', [elapsed]);
 	}
 
 	/**Used for updating the Conductor class.**/
@@ -2616,7 +2612,7 @@ class PlayState extends MusicBeatState
 		if ((playingLeftSide ? (health >= 2) : (health <= 0)))
 		{
 			isDead = true;
-			scripts.executeFunc("onGameOver", []);
+			if (scripts != null) scripts.executeFunc("onGameOver", []);
 			boyfriend.stunned = true;
 
 			persistentUpdate = false;
@@ -2637,7 +2633,7 @@ class PlayState extends MusicBeatState
 				openSubState(new meta.substates.GameOverSubstate(char.getScreenPosition().x, char.getScreenPosition().y));
 			}
 
-			#if desktop
+			#if DISCORD_RPC
 			if (Main.discordRPC)
 				DiscordClient.changePresence("Game Over - " + detailsText, daRPCInfo, iconRPC);
 			#end
@@ -2664,7 +2660,7 @@ class PlayState extends MusicBeatState
 			if (pressingStuff.contains(true))
 			{
 				movingEditor = true;
-				scripts.executeFunc('onStateLeaved', []);
+				if (scripts != null) scripts.executeFunc('onStateLeaved', []);
 				persistentUpdate = false;
 				persistentDraw = true;
 				paused = true;
@@ -2700,7 +2696,7 @@ class PlayState extends MusicBeatState
 			{
 				movingEditor = true;
 				canPause = false;
-				scripts.executeFunc('onStateLeaved', []);
+				if (scripts != null) scripts.executeFunc('onStateLeaved', []);
 				songSpeed = 1.0;
 				FlxG.sound.music.pause();
 				vocals.pause();
@@ -2711,7 +2707,7 @@ class PlayState extends MusicBeatState
 				else
 					FlxG.switchState(new meta.modding.chart_editor.ChartingState());
 
-				#if desktop
+				#if DISCORD_RPC
 				if (Main.discordRPC)
 					DiscordClient.changePresence("Chart Editor", null, null, true);
 				#end
@@ -2743,7 +2739,9 @@ class PlayState extends MusicBeatState
 		//RPC Related stuff
 		daRPCInfo = '${config.scoreText}: ' + songScore + " | " + '${config.missesText}: ' + misses + ' | ' + '${config.accuracyText}: '
 			+ RatingsCheck.fixFloat(accuracy, 2) + "% (" + ratingText + ')';
+		#if DISCORD_RPC
 		if (songStarted) DiscordClient.changePresence(detailsText, (CDevConfig.saveData.botplay ? "Botplay" : daRPCInfo), iconRPC, true, songLength - Conductor.songPosition);
+		#end
 
 		bgScore.setGraphicSize(Std.int(((scoreTxt.size * 0.59) * scoreTxt.text.length) + 3), Std.int(scoreTxt.height + 3));
 		bgScore.screenCenter(X);
@@ -2772,11 +2770,11 @@ class PlayState extends MusicBeatState
 
 	public function pauseGame()
 	{
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence(detailsPausedText, daRPCInfo, iconRPC);
 		#end
-		scripts.executeFunc('onGamePaused', []);
+		if (scripts != null) scripts.executeFunc('onGamePaused', []);
 		persistentUpdate = false;
 		persistentDraw = true;
 		paused = true;
@@ -3507,13 +3505,13 @@ class PlayState extends MusicBeatState
 					daNote.destroy();
 
 					var funct:String = "onP2Hit";
-					scripts.executeFunc(funct, [daNote]);
+					if (scripts != null) scripts.executeFunc(funct, [daNote]);
 
 					// we do some changes here.
 					// if (playingLeftSide)
-					//	scripts.executeFunc('p1NoteHit', [daNote.noteData, daNote.isSustainNote]);
+					//	if (scripts != null) scripts.executeFunc('p1NoteHit', [daNote.noteData, daNote.isSustainNote]);
 					// else
-					scripts.executeFunc('p2NoteHit', [daNote.noteData, daNote.isSustainNote]);
+					if (scripts != null) scripts.executeFunc('p2NoteHit', [daNote.noteData, daNote.isSustainNote]);
 				}
 
 				if ((daNote.mustPress && daNote.tooLate && !CDevConfig.saveData.downscroll || daNote.mustPress && daNote.tooLate
@@ -3849,7 +3847,7 @@ class PlayState extends MusicBeatState
 		if (!songEnded)
 		{
 			songEnded = true;
-			scripts.executeFunc('onEndSong', []);
+			if (scripts != null) scripts.executeFunc('onEndSong', []);
 			canPause = false;
 			FlxG.sound.music.volume = 0;
 			vocals.volume = 0;
@@ -3945,7 +3943,7 @@ class PlayState extends MusicBeatState
 			{
 				transIn = FlxTransitionableState.defaultTransIn;
 				transOut = FlxTransitionableState.defaultTransOut;
-				scripts.executeFunc('onStateLeaved', []);
+				if (scripts != null) scripts.executeFunc('onStateLeaved', []);
 
 				FlxG.switchState(new meta.modding.chart_editor.ChartingState());
 				GameOverSubstate.resetDeathStatus();
@@ -3976,7 +3974,7 @@ class PlayState extends MusicBeatState
 
 	function switchAfterEnd(story:Bool)
 	{
-		scripts.executeFunc('onStateLeaved', []);
+		if (scripts != null) scripts.executeFunc('onStateLeaved', []);
 		if (story)
 		{
 			FlxG.sound.playMusic(Paths.music('freakyMenu'));
@@ -4121,7 +4119,7 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			scripts.executeFunc('onEvent', [nameShit, input1, input2]);
+			if (scripts != null) scripts.executeFunc('onEvent', [nameShit, input1, input2]);
 		}
 	}
 
@@ -4561,7 +4559,7 @@ class PlayState extends MusicBeatState
 
 				recalculateAccuracy();
 
-				scripts.executeFunc('onNoteMiss', [direction]);
+				if (scripts != null) scripts.executeFunc('onNoteMiss', [direction]);
 			}
 			else
 			{
@@ -4724,13 +4722,13 @@ class PlayState extends MusicBeatState
 			recalculateAccuracy();
 
 			var funct:String = "onP1Hit";
-			scripts.executeFunc(funct, [note]);
+			if (scripts != null) scripts.executeFunc(funct, [note]);
 
 			// Deprecated.
 			// if (!playingLeftSide)
-			scripts.executeFunc('p1NoteHit', [note.noteData, note.isSustainNote]);
+			if (scripts != null) scripts.executeFunc('p1NoteHit', [note.noteData, note.isSustainNote]);
 			// else
-			//	scripts.executeFunc('p2NoteHit', [note.noteData, note.isSustainNote]);
+			//	if (scripts != null) scripts.executeFunc('p2NoteHit', [note.noteData, note.isSustainNote]);
 		}
 	}
 
@@ -4910,7 +4908,7 @@ class PlayState extends MusicBeatState
 				}
 		}
 
-		scripts.executeFunc('stepHit', [curStep]);
+		if (scripts != null) scripts.executeFunc('stepHit', [curStep]);
 
 		if (isModStage)
 			stageHandler.onStepHit(curStep);
@@ -5105,7 +5103,7 @@ class PlayState extends MusicBeatState
 		if (isModStage)
 			stageHandler.beatHit(curBeat);
 
-		scripts.executeFunc('beatHit', [curBeat]);
+		if (scripts != null) scripts.executeFunc('beatHit', [curBeat]);
 		if (CDevConfig.saveData.botplay)
 			botplayTextBeat();
 	}

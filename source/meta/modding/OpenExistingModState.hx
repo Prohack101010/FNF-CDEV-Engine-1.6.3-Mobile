@@ -16,7 +16,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 
@@ -36,7 +36,7 @@ class OpenExistingModState extends meta.states.MusicBeatState
 
 	override function create()
 	{
-        #if desktop
+        #if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("About to create a cool mod.", null);
 		#end
@@ -44,11 +44,11 @@ class OpenExistingModState extends meta.states.MusicBeatState
 		FlxG.sound.volumeDownKeys = [MINUS,NUMPADMINUS];
 		FlxG.sound.volumeUpKeys = [PLUS,NUMPADPLUS];
 
-        var shit:Array<String> = FileSystem.readDirectory('cdev-mods/');
+        var shit:Array<String> = FileSystem.readDirectory(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/');
 
 		shit.remove('readme.txt'); //excludes readme.txt from the list.
         for (i in 0...shit.length){
-            if (FileSystem.isDirectory('cdev-mods/' + shit[i])){
+            if (FileSystem.isDirectory(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + shit[i])){
                 var crapJSON = null;
 
                 #if ALLOW_MODS
@@ -98,6 +98,7 @@ class OpenExistingModState extends meta.states.MusicBeatState
 			optionText.isMenuItem = true;
 			optionText.isFreeplay = true;
 			optionText.targetY = i;
+			optionText.ID = i;
 			// optionText.y += (100 * (i - (options.length / 2))) + 50;
 			grpOptions.add(optionText);
 		}
@@ -139,6 +140,34 @@ class OpenExistingModState extends meta.states.MusicBeatState
 			FlxG.switchState(new ModdingState());
 		}
 
+		if (!noMods)
+		{
+			for (item in grpOptions.members)
+			{
+				if (FlxG.mouse.overlaps(item))
+				{
+					if (FlxG.mouse.justPressed)
+					{
+						if (curSelected != item.ID)
+							changeSelection(item.ID, true);
+						else
+						{
+							for (item in grpOptions.members)
+							{
+								item.alpha = 0;
+							}
+							FlxG.sound.play(Paths.sound('confirmMenu'));
+							Paths.curModDir = [];
+							Paths.curModDir.push(modShits[curSelected].modName);
+							FlxG.switchState(new ModdingScreen());
+
+							CDevConfig.saveData.loadedMods = Paths.curModDir;
+						}
+					}
+				}
+			}
+		}
+
 		if (controls.ACCEPT)
 		{
 			if (!noMods){
@@ -157,12 +186,15 @@ class OpenExistingModState extends meta.states.MusicBeatState
 		}
 	}
 
-	function changeSelection(change:Int = 0)
+	function changeSelection(change:Int = 0, forceChange:Bool = false)
 	{
 		var bullShit:Int = 0;
 
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-		curSelected += change;
+		if (forceChange)
+			curSelected = change;
+		else
+			curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = modShits.length - 1;

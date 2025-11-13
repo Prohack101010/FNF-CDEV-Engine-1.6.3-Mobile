@@ -32,18 +32,18 @@ class SongConfScript
 		if (mod == "BASEFNF"){
 			folder = "assets/data/charts/"+song+"/";
 		} else{
-			folder = 'cdev-mods/$mod/data/charts/$song/';
+			folder = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/data/charts/$song/';
 		}
 
 		scripts = getScript(folder, mod);
 
-		var additScript:Array<CDevModScript> = getScript("cdev-mods/"+mod+"/scripts/", mod);
+		var additScript:Array<CDevModScript> = getScript(#if mobile StorageUtil.getExternalStorageDirectory() + #end "cdev-mods/"+mod+"/scripts/", mod);
 		
 		if (scripts.length == 0)
 		{
 			scripts = [
 				{
-					daPath: 'cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx',
+					daPath: #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx',
 					daMod: mod
 				}
 			];
@@ -105,14 +105,14 @@ class SongConfScript
 
 	public static function getScriptShit(mod:String, sus:String):CDevModScript
 	{
-		var p:String = 'cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx';
+		var p:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx';
 		var exist:Bool = false;
 		// classic script method
 		for (ext in CDevScript.haxeExts)
 		{
-			if (FileSystem.exists('cdev-mods/$mod/data/charts/$sus/script.$ext'))
+			if (FileSystem.exists(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/data/charts/$sus/script.$ext'))
 			{
-				p = 'cdev-mods/$mod/data/charts/$sus/script.$ext';
+				p = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/data/charts/$sus/script.$ext';
 				exist = true;
 				break;
 			}
@@ -128,7 +128,7 @@ class SongConfScript
 		}
 		return {
 			daMod: "Funkin Mod",
-			daPath: "cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx"
+			daPath: #if mobile StorageUtil.getExternalStorageDirectory() + #end "cdev-mods/Funkin Mod/data/charts/mod-test/unknown.hx"
 		}
 	}
 }

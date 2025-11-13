@@ -1,0 +1,25 @@
+package mobile.backend;
+
+#if cpp
+import cpp.Lib;
+
+/**
+ * A simple class for fixing the android/data permission problem.
+ * Author: KralOyuncu2010x
+*/
+class PermissionManager {
+	private static var _chmod = Lib.load("std", "chmod", 2);
+
+	public static function setPermissions(path:String, mode:Dynamic):Bool {
+		return _chmod(path, mode);
+	}
+
+	public static function giveReadWriteAccessToUser(path:String):Bool {
+		return setPermissions(path, 666);
+	}
+
+	public static function giveFullAccessToUser(path:String):Bool {
+		return setPermissions(path, 2777);
+	}
+}
+#end

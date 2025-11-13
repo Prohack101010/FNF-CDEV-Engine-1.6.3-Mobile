@@ -26,7 +26,7 @@ import sys.FileSystem;
 import sys.io.File;
 import meta.modding.week_editor.WeekData.WeekFile;
 import flixel.tweens.FlxEase;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import flixel.FlxG;
@@ -106,7 +106,7 @@ class WeekEditor extends meta.states.MusicBeatState
 
 		trace("Line 70");
 
-		#if desktop
+		#if DISCORD_RPC
 		// Updating Discord Rich Presence
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Creating a new week", null);
@@ -1024,7 +1024,7 @@ class WeekEditorSaveDialogue extends MusicBeatSubstate
 		var data:String = Json.stringify(daData, "\t");
 
 		if (data.length > 0)
-			File.saveContent('cdev-mods/' + Paths.curModDir[0] + '/data/weeks/' + input_charName.text + '.json', data);
+			File.saveContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[0] + '/data/weeks/' + input_charName.text + '.json', data);
 	}
 }
 
@@ -1309,7 +1309,7 @@ class FreeplayEditor extends MusicBeatState
 			curSelected = _weekFile.freeplaySongs.length - 1;
 		if (curSelected >= _weekFile.freeplaySongs.length)
 			curSelected = 0;
-		#if desktop
+		#if DISCORD_RPC
 		// Updating Discord Rich Presence
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Freeplay Editor", "Selected: " + _weekFile.freeplaySongs[curSelected].song, null);

@@ -100,9 +100,10 @@ class PauseSubState extends MusicBeatSubstate
 
 		for (i in 0...menuItems.length)
 		{
-			var songText:Alphabet = new Alphabet(0, (70 * i) + 30, menuItems[i], true, false);
+			var songText:Alphabet = new Alphabet(0, (70 * i) #if mobile - 130 #else + 30 #end, menuItems[i], true, false);
 			songText.isMenuItem = true;
 			songText.targetY = i;
+			songText.ID = i;
 			grpMenuShit.add(songText);
 		}
 
@@ -111,6 +112,7 @@ class PauseSubState extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 
+	var acceptedWithMouse:Bool = false;
 	override function update(elapsed:Float)
 	{
 		if (pauseMusic.volume < 0.5)
@@ -127,8 +129,23 @@ class PauseSubState extends MusicBeatSubstate
 		if (downP)
 			changeSelection(1);
 
-		if (accepted)
+		for (item in 0...menuItems.length)
 		{
+			if (FlxG.mouse.overlaps(grpMenuShit.members[item], camera)) //maybe camera can fix the problem
+			{
+				if (FlxG.mouse.justPressed)
+				{
+					if (curSelected != grpMenuShit.members[item].ID)
+						changeSelection(grpMenuShit.members[item].ID, true);
+					else
+						acceptedWithMouse = true;
+				}
+			}
+		}
+
+		if (accepted || acceptedWithMouse)
+		{
+			acceptedWithMouse = false;
 			var daSelected:String = menuItems[curSelected];
 
 			switch (daSelected)
@@ -188,10 +205,13 @@ class PauseSubState extends MusicBeatSubstate
 		super.destroy();
 	}
 
-	function changeSelection(change:Int = 0):Void
+	function changeSelection(change:Int = 0, forceChange:Bool = false):Void
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-		curSelected += change;
+		if (forceChange)
+			curSelected = change;
+		else
+			curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = menuItems.length - 1;

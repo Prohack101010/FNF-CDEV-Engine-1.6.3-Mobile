@@ -1386,6 +1386,6 @@ class CharacterEditorSaveDialog extends MusicBeatSubstate
 		var data:String = Json.stringify(daData, "\t");
 
 		if (data.length > 0)
-			File.saveContent('cdev-mods/' + Paths.curModDir[0] + '/data/characters/' + input_charName.text + '.json', data);
+			File.saveContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[0] + '/data/characters/' + input_charName.text + '.json', data);
 	}
 }

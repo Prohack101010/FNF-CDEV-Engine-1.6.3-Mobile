@@ -18,7 +18,7 @@ import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
-#if desktop
+#if DISCORD_RPC
 import game.cdev.engineutils.Discord.DiscordClient;
 #end
 import game.objects.Alphabet;
@@ -47,7 +47,7 @@ class ModdingScreen extends meta.states.MusicBeatState
 		FlxG.sound.muteKeys = [ZERO, NUMPADZERO];
 		FlxG.sound.volumeDownKeys = [MINUS, NUMPADMINUS];
 		FlxG.sound.volumeUpKeys = [PLUS, NUMPADPLUS];
-		#if desktop
+		#if DISCORD_RPC
 		if (Main.discordRPC)
 			DiscordClient.changePresence("Creating a mod", Paths.curModDir[0]);
 		#end
@@ -74,6 +74,7 @@ class ModdingScreen extends meta.states.MusicBeatState
 			songText.forcePositionToScreen = false;
 			songText.heightOffset = offset;
 			songText.targetY = i;
+			songText.ID = i;
 			grpMenu.add(songText);
 		}
 
@@ -121,6 +122,43 @@ class ModdingScreen extends meta.states.MusicBeatState
 		if (controls.UI_DOWN_P)
 			changeSelection(1);
 
+		for (item in grpMenu.members)
+		{
+			if (FlxG.mouse.overlaps(item))
+			{
+				if (FlxG.mouse.justPressed)
+				{
+					if (curSelected != item.ID)
+						changeSelection(item.ID, true);
+					else
+					{
+						switch (options[curSelected][0])
+						{
+							case "Open in Explorer":
+								CDevConfig.utils.openFolder("./cdev-mods/"+Paths.currentMod+"/", true);
+							case "Add Song Chart":
+								FlxG.switchState(new SongEditor());
+							case "Freeplay Editor":
+								FlxG.switchState(new SongListEditor());
+								//wip
+							case 'Character Editor':
+								var theState:meta.modding.char_editor.CharacterEditor = new meta.modding.char_editor.CharacterEditor(false,true,false);
+								theState.moddingMode = true;
+								FlxG.switchState(theState);
+							case 'Stage Editor':
+								FlxG.switchState(new meta.modding.stage_editor.Better_StageEditor());
+							case 'Week Editor':
+								FlxG.sound.music.stop();
+								FlxG.switchState(new meta.modding.week_editor.WeekEditor(''));	
+							case 'Add Event Script': // Shhh
+								FlxG.switchState(new meta.modding.event_editor.EventScriptEditor()); 
+						}
+						FlxG.sound.play(Paths.sound('confirmMenu'), 0.4);
+					}
+				}
+			}
+		}
+
 		if (controls.ACCEPT)
 		{
 			switch (options[curSelected][0])
@@ -148,11 +186,14 @@ class ModdingScreen extends meta.states.MusicBeatState
 		}
 	}
 	var textTween:FlxTween;
-	function changeSelection(change:Int = 0)
+	function changeSelection(change:Int = 0, forceChange:Bool = false)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
-		curSelected += change;
+		if (forceChange)
+			curSelected = change;
+		else
+			curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = options.length - 1;
