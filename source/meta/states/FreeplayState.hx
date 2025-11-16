@@ -127,9 +127,9 @@ class FreeplayState extends MusicBeatState
 
 			var list:Array<String> = [];
 
-			if (FileSystem.exists(#if REALTIME_MOD_CHECK StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[directory] + '/songList.txt'))
+			if (FileSystem.exists(#if mobile Sys.getCwd() + #end 'cdev-mods/' + Paths.curModDir[directory] + '/songList.txt'))
 			{
-				list = File.getContent(#if REALTIME_MOD_CHECK StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[directory] + '/songList.txt').trim().split('\n');
+				list = File.getContent(#if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + Paths.curModDir[directory] + '/songList.txt').trim().split('\n');
 			}
 			for (i in 0...list.length)
 				list[i] = list[i].trim();

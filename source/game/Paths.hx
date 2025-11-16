@@ -131,7 +131,7 @@ class Paths
 		return getPreloadPath(file);
 	}
 
-	static public function getLibraryPath(file:String, library = "preload")
+	inline static public function getLibraryPath(file:String, library = "preload")
 	{
 		return if (library == "preload" || library == "default") getPreloadPath(file); else getLibraryPathForce(file, library);
 	}
@@ -352,12 +352,13 @@ class Paths
 
 	#if sys
 	// hi shadow mario.
-	static public function addCustomGraphic(key:String, ?isGlobalPath:Bool):FlxGraphic
+	inline static public function addCustomGraphic(key:String, ?isGlobalPath:Bool):FlxGraphic
 	{
 		if (FileSystem.exists(modImages(key, isGlobalPath)))
 		{
 			if (!customImagesLoaded.exists(key))
 			{
+				trace('image not loaded');
 				var data = Image.fromFile(modImages(key, isGlobalPath));
 				var newBitmap:BitmapData = BitmapData.fromImage(data);
 
@@ -590,29 +591,12 @@ class Paths
 
 	static public function modFolders(key:String) // , ?thisMod:Null<String>=null)
 	{
-		///if (curModDir != null && curModDir.length > 0)
-		// {
-		//	var checkFile:String = mods(curModDir + '/' + key);
-		//	if (FileSystem.exists(checkFile))
-		//	{
-		//		return checkFile;
-		//	}
-		// }
-		/*if (thisMod != null && thisMod != '')
-			{
-				var checkFile:String = mods(thisMod + '/' + key);
-				if (FileSystem.exists(checkFile))
-					return checkFile;
-			}
-			else */
+		if (currentMod != null && currentMod != '')
 		{
-			if (currentMod != null && currentMod != '')
+			var checkFile:String = mods(currentMod + '/' + key);
+			if (FileSystem.exists(checkFile))
 			{
-				var checkFile:String = mods(currentMod + '/' + key);
-				if (FileSystem.exists(checkFile))
-				{
-					return checkFile;
-				}
+				return checkFile;
 			}
 		}
 

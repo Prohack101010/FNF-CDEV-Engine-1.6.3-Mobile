@@ -230,6 +230,9 @@ class Better_StageEditor extends MusicBeatState
 		saveButton.resize(50,20);
 		saveButton.addIcon(new FlxSprite().loadGraphic(Paths.image("ui/file","shared")));
 		saveButton.cameras = [camHUD];
+
+		addMobilePad('STAGE_EDITOR', 'STAGE_EDITOR');
+		addMobilePadCamera();
 	}
 
 	function __init_stageJson()
@@ -1053,17 +1056,6 @@ class Better_StageEditor extends MusicBeatState
 		_currentObject = sprite;
 	}
 
-	function checkOverlap(sprite:SpriteStage, mousePos:FlxPoint):Bool
-	{
-		var pos = {
-			x: sprite.x - sprite.offset.x,
-			y: sprite.y - sprite.offset.y,
-			x2: sprite.x - sprite.offset.x + sprite.width,
-			y2: sprite.y - sprite.offset.y + sprite.height
-		};
-		return mousePos.x >= pos.x && mousePos.x < pos.x2 && mousePos.y >= pos.y && mousePos.y < pos.y2;
-	}
-
 	function _update_keyControls(elapsed:Float)
 	{
 		var camMove:Float = 500 * elapsed;
@@ -1071,16 +1063,20 @@ class Better_StageEditor extends MusicBeatState
 			FlxG.keys.pressed.A,
 			FlxG.keys.pressed.W,
 			FlxG.keys.pressed.S,
-			FlxG.keys.pressed.D
+			FlxG.keys.pressed.D,
+			mobilePad.buttonLeft.pressed,
+			mobilePad.buttonUp.pressed,
+			mobilePad.buttonDown.pressed,
+			mobilePad.buttonRight.pressed,
 		];
 
-		if (FlxG.keys.pressed.A)
+		if (FlxG.keys.pressed.A || mobilePad.buttonLeft.pressed)
 			_followCam.x -= camMove;
-		if (FlxG.keys.pressed.S)
+		if (FlxG.keys.pressed.S || mobilePad.buttonDown.pressed)
 			_followCam.y += camMove;
-		if (FlxG.keys.pressed.D)
+		if (FlxG.keys.pressed.D || mobilePad.buttonRight.pressed)
 			_followCam.x += camMove;
-		if (FlxG.keys.pressed.W)
+		if (FlxG.keys.pressed.W || mobilePad.buttonUp.pressed)
 			_followCam.y -= camMove;
 
 		if (presses.contains(true))
@@ -1114,7 +1110,7 @@ class Better_StageEditor extends MusicBeatState
 		if (camGame.zoom < 0.1)
 			camGame.zoom = 0.1;
 
-		if (FlxG.keys.justPressed.ESCAPE)
+		if (FlxG.keys.justPressed.ESCAPE #if android || FlxG.android.justReleased.BACK #end)
 		{
 			FlxG.camera.bgColor = 0xFF000000;
 			FlxG.switchState(new meta.modding.ModdingScreen());
@@ -1338,6 +1334,23 @@ class Better_StageEditor extends MusicBeatState
 
 		unsaved = false;
 	}
+
+	function checkOverlap(sprite:SpriteStage, mousePos:FlxPoint):Bool
+	{
+		for (object in __objectButtons_array)
+		{
+			if (FlxG.mouse.overlaps(object))
+				return false;
+		}
+
+		var pos = {
+			x: sprite.x - sprite.offset.x,
+			y: sprite.y - sprite.offset.y,
+			x2: sprite.x - sprite.offset.x + sprite.width,
+			y2: sprite.y - sprite.offset.y + sprite.height
+		};
+		return mousePos.x >= pos.x && mousePos.x < pos.x2 && mousePos.y >= pos.y && mousePos.y < pos.y2;
+	}
 }
 
 class StageSaveDialog extends MusicBeatSubstate
@@ -1425,7 +1438,7 @@ class StageSaveDialog extends MusicBeatSubstate
 				input_stageBName.caretIndex = input_stageBName.text.length;
 			}
 
-			if (FlxG.keys.justPressed.ENTER)
+			if (FlxG.keys.justPressed.ENTER || mobilePad.buttonA.justPressed)
 			{
 				saveChar();
 				close();

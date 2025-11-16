@@ -38,12 +38,12 @@ class ModPaths
 		this.mod = mod;
 	}
 
-	public function font(font:String)
+	inline public function font(font:String)
 	{
 		return currentModFolder('data/fonts/$font.ttf');
 	}
 
-	public function xml(key:String):String
+	inline public function xml(key:String):String
 	{
 		var e = currentModFolder('images/$key.xml');
 		if (FileSystem.exists(e)) return e;
@@ -54,13 +54,14 @@ class ModPaths
 		return currentModFolder('images/$key.xml');
 	}
 
-	public function addCustomGraphic(key:String):FlxGraphic
+	inline public function addCustomGraphic(key:String):FlxGraphic
 	{
-		var path:String = #if REALTIME_MOD_CHECK StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/images/$key.png';
+		var path:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/images/$key.png';
 		if (FileSystem.exists(path))
 		{
 			if (!modImagesLoaded.exists(key))
 			{
+				trace('image not loaded');
 				var data:Image = Image.fromBytes(File.getBytes(path));
 				var newBitmap:BitmapData = null;
 
@@ -99,13 +100,13 @@ class ModPaths
 	}
 	#end
 
-	public function soundRandom(key:String, min:Int, max:Int)
+	inline public function soundRandom(key:String, min:Int, max:Int)
 	{
 		var ranVal = FlxG.random.int(min, max);
 		return sound('$key$ranVal');
 	}
 
-	public function sound(key:String):Dynamic
+	inline public function sound(key:String):Dynamic
 	{
 		var e:String = key;
 		if (e.endsWith(".ogg")) e = e.replace(".ogg", "");
@@ -124,7 +125,7 @@ class ModPaths
 		return null;
 	}
 
-	public function music(key:String):Dynamic
+	inline public function music(key:String):Dynamic
 	{
 		var e:String = key;
 		if (e.endsWith(".ogg")) e = e.replace(".ogg", "");
@@ -143,7 +144,7 @@ class ModPaths
 		return null;
 	}
 
-	public function image(key:String):Dynamic
+	inline public function image(key:String):Dynamic
 	{
 		var imageToReturn:Dynamic = addCustomGraphic(key);
 		if (imageToReturn != null) return imageToReturn;
@@ -155,49 +156,49 @@ class ModPaths
 		return currentModFolder('images/$key.png');
 	}
 
-	public function video(key:String):String
+	inline public function video(key:String):String
 	{
 		return currentModFolder('videos/$key.mp4');
 	}
 
-	public function text(key:String):String
+	inline public function text(key:String):String
 	{
 		return File.getContent(currentModFolder(key + ".txt"));
 	}
 
-	public function frag(key:String):String
+	inline public function frag(key:String):String
 	{
 		return File.getContent(currentModFolder("shaders/" + key + '.frag'));
 	}
 
-	public function vert(key:String):String
+	inline public function vert(key:String):String
 	{
 		return File.getContent(currentModFolder("shaders/" + key + '.vert'));
 	}
 
-	public function getFile(key:String, type:AssetType):Any
+	inline public function getFile(key:String, type:AssetType):Any
 	{
 		return LimeAssets.getAsset(key, type, false);
 	}
 
-	public function getSparrowAtlas(key:String):FlxAtlasFrames
+	inline public function getSparrowAtlas(key:String):FlxAtlasFrames
 	{
 		// trace(File.getContent(xml(key)));
 		return FlxAtlasFrames.fromSparrow(image(key), File.getContent(xml(key)));
 	}
 
-	public function currentModFolder(key:String)
+	inline public function currentModFolder(key:String)
 	{
-		var checkFile:String = #if REALTIME_MOD_CHECK StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + mod + '/' + key;
+		var checkFile:String = #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/' + mod + '/' + key;
 		if (FileSystem.exists(checkFile))
 			return checkFile;
-		return #if REALTIME_MOD_CHECK StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/' + key;
+		return #if mobile StorageUtil.getExternalStorageDirectory() + #end 'cdev-mods/$mod/' + key;
 	}
 
 	/*
 		WIP
 	 */
-	public function getFromAssets(key:String, type:String, fromPreload:Bool)
+	inline public function getFromAssets(key:String, type:String, fromPreload:Bool)
 	{
 		var lib:String = (fromPreload ? "preload" : "shared");
 		switch (type.toLowerCase()){

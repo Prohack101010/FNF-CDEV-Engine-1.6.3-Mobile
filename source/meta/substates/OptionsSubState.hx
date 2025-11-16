@@ -1,4 +1,8 @@
 package meta.substates;
+
+#if android
+import game.system.native.Android;
+#end
 import flixel.util.FlxTimer;
 import game.settings.SettingsSubState;
 import game.settings.data.SettingsProperties;
@@ -84,6 +88,20 @@ class OptionsSubState extends MusicBeatSubstate
 	{
 		super.update(elapsed);
 
+		#if android
+		grpOptions.forEach(function(spr:FlxText)
+		{
+			Android.touchJustPressed(spr, function()
+			{
+				if (spr.ID != curSelected)
+					changeSelection(spr.ID, true);
+				else {
+					if (allowToPress) onSelected();
+				}
+			});
+		});
+		#end
+
 		if (controls.UI_UP_P)
 		{
 			changeSelection(-1);
@@ -106,25 +124,32 @@ class OptionsSubState extends MusicBeatSubstate
 		{
 			if (controls.ACCEPT)
 			{
-				for (item in grpOptions.members)
-				{
-					item.alpha = 0;
-				}
-				switch (SettingsProperties.CURRENT_SETTINGS[curSelected].name)
-				{
-					case 'Controls':
-						openSubState(new game.settings.keybinds.RebindControls(true));
-					default:
-						openSubState(new SettingsSubState(SettingsProperties.CURRENT_SETTINGS[curSelected], true));
-				}
+				onSelected();
 			}
 		}
 	}
 
-	function changeSelection(change:Int = 0)
+	function onSelected() {
+		for (item in grpOptions.members)
+		{
+			item.alpha = 0;
+		}
+		switch (SettingsProperties.CURRENT_SETTINGS[curSelected].name)
+		{
+			case 'Controls':
+				openSubState(new game.settings.keybinds.RebindControls(true));
+			default:
+				openSubState(new SettingsSubState(SettingsProperties.CURRENT_SETTINGS[curSelected], true));
+		}
+	}
+
+	function changeSelection(change:Int = 0, force:Bool = false)
 	{
 		FlxG.sound.play(game.Paths.sound('scrollMenu'), 0.4);
-		curSelected += change;
+		if (force)
+			curSelected = change;
+		else
+			curSelected += change;
 
 		if (curSelected < 0)
 			curSelected = SettingsProperties.CURRENT_SETTINGS.length - 1;
